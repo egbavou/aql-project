@@ -29,11 +29,11 @@ class PasswordResetService
     public function resetPassword(PasswordResetRequest $request): void
     {
         $passwordResetToken = PasswordResetToken::where('token', $request->input('token'))
-            ->firstOrFail();
+            ->first();
 
         PasswordResetToken::where('token', $request->input('token'))
             ->delete();
-        if ($passwordResetToken->created_at->gte(now()->subMinutes(config('app.password_reset_token_lifetime')))) {
+        if ($passwordResetToken?->created_at->gte(now()->subMinutes(config('app.password_reset_token_lifetime')))) {
             $password = Hash::make($request->input('password'));
             User::where('email', $passwordResetToken->email)
                 ->update(['password' => $password]);
