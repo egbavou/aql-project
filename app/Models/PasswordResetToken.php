@@ -13,4 +13,8 @@ class PasswordResetToken extends Model
         'email',
         'token'
     ];
+
+    public $timestamps = ["created_at"];
+
+    const UPDATED_AT = null;
 }
