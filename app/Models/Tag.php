@@ -15,6 +15,10 @@ class Tag extends Model
         'name'
     ];
 
+    protected $hidden = [
+        'pivot'
+    ];
+
     public function documents(): BelongsToMany
     {
         return $this->belongsToMany(Document::class);

@@ -7,12 +7,17 @@ use App\Enum\Language;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @mixin IdeHelperDocument
  */
 class Document extends Model
 {
+    const FOLDER = 'documents';
+
+    protected $hidden = ['path'];
+
     protected $fillable = [
         'author',
         'path',
@@ -42,5 +47,10 @@ class Document extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function accesses(): HasMany
+    {
+        return $this->hasMany(Access::class);
     }
 }

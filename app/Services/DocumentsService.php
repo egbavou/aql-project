@@ -1,0 +1,173 @@
+<?php
+
+namespace App\Services;
+
+use App\Enum\DocumentVisibility;
+use App\Http\Requests\DocumentCreateRequest;
+use App\Http\Requests\DocumentFilterRequest;
+use App\Http\Requests\DocumentUpdateRequest;
+use App\Models\Access;
+use App\Models\Document;
+use App\Models\Tag;
+use App\Models\User;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Throwable;
+
+final class DocumentsService
+{
+    public function list(DocumentFilterRequest $request): LengthAwarePaginator
+    {
+        $query = Document::with('tags')
+            ->where('visibility', DocumentVisibility::publicFile);
+        return $this->finalizeDocumentFiltering($query, $request);
+    }
+
+    public function listCreated(DocumentFilterRequest $request): LengthAwarePaginator
+    {
+        $query = Document::with('tags', 'accesses', 'accesses.user')
+            ->where('user_id', $request->user()->id);
+        return $this->finalizeDocumentFiltering($query, $request);
+    }
+
+    public function listSharedWith(DocumentFilterRequest $request): LengthAwarePaginator
+    {
+        $query = Document::with('tags')
+            ->join('accesses', 'documents.id', '=', 'accesses.document_id')
+            ->where('accesses.user_id', $request->user()->id);
+        return $this->finalizeDocumentFiltering($query, $request);
+    }
+
+    public function show(int $id, Request $request): Document
+    {
+        $document = Document::with('tags')
+            ->findOrFail($id);
+        abort_if(!$this->hasAccess($request->user(), $document), 403);
+        return $document;
+    }
+
+    public function showByToken(string $token): Document
+    {
+        return Document::with('tags')
+            ->where('token', $token)
+            ->where('visibility', DocumentVisibility::linkSharedFile)
+            ->firstOrFail();
+    }
+
+    public function download(int $id): BinaryFileResponse
+    {
+        $document = Document::findOrFail($id);
+        abort_if(!$this->hasAccess(Auth::guard('sanctum')->user(), $document), 403);
+        $document->update(['downloads' => $document->downloads + 1]);
+        return response()->download(storage_path('app/private/' . $document->path));
+    }
+
+    public function downloadByToken(string $token): BinaryFileResponse
+    {
+        $document = Document::where('token', $token)
+            ->where('visibility', DocumentVisibility::linkSharedFile)
+            ->firstOrFail();
+        $document->update(['downloads' => $document->downloads + 1]);
+        return response()->download(storage_path('app/private/' . $document->path), $document->title);
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function create(DocumentCreateRequest $request): Document
+    {
+        return DB::transaction(function () use ($request) {
+            $filePath = $request->file('file')
+                ->store(Document::FOLDER);
+            $data = $request->safe()->except(['file', 'tags']);
+            $data['path'] = $filePath;
+            $data['size'] = $request->file('file')->getSize();
+            $data['user_id'] = $request->user()->id;
+            $tags = $request->input('tags', []);
+            $tagIds = collect($tags)->map(fn($tagName) => Tag::firstOrCreate(['name' => $tagName])->id);
+            $document = Document::create($data);
+            $document->tags()->sync($tagIds);
+            $document->load('tags');
+            return $document;
+        });
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function update(int $id, DocumentUpdateRequest $request): Document
+    {
+        return DB::transaction(function () use ($id, $request) {
+            $document = Document::where('user_id', $request->user()->id)
+                ->findOrFail($id);
+            $data = $request->safe()->except(['file', 'tags']);
+            $document->fill($data);
+
+            if ($request->hasFile('file')) {
+                File::delete(storage_path('app/private/' . $document->path));
+                $document->path = $request->file('file')->store(Document::FOLDER);
+                $document->size = $request->file('file')->getSize();
+            }
+
+            $document->save();
+            $tags = $request->input('tags', []);
+            $tagIds = collect($tags)->map(function ($tagName) {
+                return Tag::firstOrCreate(['name' => $tagName])->id;
+            });
+            $document->tags()->sync($tagIds);
+            $document->load('tags');
+            return $document;
+        });
+    }
+
+    public function delete(int $id, Request $request): void
+    {
+        $document = Document::where('user_id', $request->user()->id)
+            ->findOrFail($id);
+        File::delete(storage_path('app/private/' . $document->path));
+        $document->delete();
+    }
+
+    private function finalizeDocumentFiltering(Builder $builder, DocumentFilterRequest $request): LengthAwarePaginator
+    {
+        $query = $builder;
+        $request->whenFilled('title', function ($value) use (&$query) {
+            $query = $query->where('title', 'like', '%' . $value . '%');
+        })->whenFilled('author', function ($value) use (&$query) {
+            $query = $query->where('author', 'like', '%' . $value . '%');
+        })->whenFilled('tag', function ($value) use (&$query) {
+            $query = $query->whereHas('tags', function ($q) use ($value) {
+                $q->where('tags.id', $value);
+            });
+        })->whenFilled('language', function ($value) use (&$query) {
+            $query = $query->where('language', $value);
+        });
+
+        return $query
+            ->paginate(
+                perPage: $request->input('per_page', 10),
+                page: $request->input('page', 1)
+            );
+    }
+
+    private function hasAccess(?User $user, Document $document): bool
+    {
+        if ($document->visibility === DocumentVisibility::publicFile
+            || $document->visibility === DocumentVisibility::linkSharedFile) {
+            return true;
+        }
+
+        if ($user?->id === $document->user_id) {
+            return true;
+        }
+
+        return Access::where('user_id', $user->id)
+            ->where('document_id', $document->id)
+            ->exists();
+    }
+}

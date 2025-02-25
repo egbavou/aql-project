@@ -8,7 +8,7 @@ use App\Models\PasswordResetToken;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 
-class PasswordResetService
+final class PasswordResetService
 {
     public function forgotPassword(ForgotPasswordRequest $request): string
     {
