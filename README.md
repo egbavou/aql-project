@@ -8,6 +8,7 @@
 - [Composer](https://getcomposer.org/download/)
 - [Mysql / Mariadb](https://mariadb.org/download/)
 - [Docker](https://docs.docker.com/get-started/get-docker/) (not required)
+- [Node](https://nodejs.org/en/download)
 
 ### Steps
 ```bash
@@ -27,3 +28,8 @@ docker run -p 1080:1080 -p 1025:1025 maildev/maildev
 php artisan serve
 ```
 ## Frontend setup
+
+```bash
+npm install
+npm run dev
+```
