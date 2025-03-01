@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useRouter } from "vue-router";
+import { useAuthStore } from "@/store/auth";
+import toast from "@/plugins/toast";
 
 const router = useRouter();
+const authStore = useAuthStore();
 
 const email = ref("");
 const password = ref("");
@@ -19,7 +22,26 @@ const password_rules = [
 async function login() {
     if (!form_valid.value) return;
 
-    router.push("/documents");
+    const success = await authStore.login({
+        email: email.value,
+        password: password.value,
+    });
+
+    if (authStore.errors) {
+        console.log(authStore.errors.errors);
+        if (
+            authStore.errors.status == "419" ||
+            authStore.errors.status == "401" ||
+            authStore.errors.status == "none"
+        ) {
+            toast(authStore.errors.message, "error");
+        }
+    }
+
+    if (success) {
+        toast("Vous êtes à présent connecté", "success");
+        router.push("/documents");
+    }
 }
 </script>
 
@@ -32,10 +54,6 @@ async function login() {
                         <v-toolbar-title>Connexion</v-toolbar-title>
                     </v-toolbar>
                     <v-card-text>
-                        <v-alert type="error" variant="tonal" class="mb-4">
-                            Erreur validation
-                        </v-alert>
-
                         <v-form v-model="form_valid" @submit.prevent="login">
                             <v-text-field
                                 v-model="email"
@@ -76,6 +94,7 @@ async function login() {
                         <v-spacer></v-spacer>
                         <v-btn
                             color="primary"
+                            :loading="authStore.loading"
                             :disabled="!form_valid"
                             @click="login"
                         >

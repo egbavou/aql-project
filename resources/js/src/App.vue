@@ -1,7 +1,21 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import { useAuthStore } from "@/store/auth";
+import { useRouter } from "vue-router";
+import toast from "@/plugins/toast";
 
+const router = useRouter();
+const authStore = useAuthStore();
 const drawer = ref(false);
+
+async function logout() {
+    const success = await authStore.logout();
+
+    if (success) {
+        toast("Vous êtes déconnecté à présent", "success");
+        router.push("/");
+    }
+}
 </script>
 
 <template>
@@ -24,27 +38,31 @@ const drawer = ref(false);
                     Accueil
                 </v-btn>
 
-                <!-- <template> -->
-                <v-btn to="/documents" variant="text">
-                    <v-icon start>mdi-file-document-multiple</v-icon>
-                    Documents
-                </v-btn>
-                <v-btn to="/upload" variant="text">
-                    <v-icon start>mdi-upload</v-icon>
-                    Téléverser
-                </v-btn>
-                <!-- </template> -->
+                <template v-if="authStore.is_authenticated">
+                    <v-btn to="/documents" variant="text">
+                        <v-icon start>mdi-file-document-multiple</v-icon>
+                        Documents
+                    </v-btn>
+                    <v-btn to="/upload" variant="text">
+                        <v-icon start>mdi-upload</v-icon>
+                        Téléverser
+                    </v-btn>
+                </template>
             </template>
 
             <v-spacer></v-spacer>
 
-            <template>
+            <template v-if="authStore.is_authenticated">
                 <v-menu>
                     <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props">
+                        <v-btn
+                            style="background-color: white"
+                            icon
+                            v-bind="props"
+                        >
                             <v-avatar color="primary" size="32">
                                 <span class="text-subtitle-2 text-white">
-                                    RA
+                                    {{ authStore.user?.name.substr(0, 2) }}
                                 </span>
                             </v-avatar>
                         </v-btn>
@@ -59,18 +77,17 @@ const drawer = ref(false);
                         <v-list-item
                             :prepend-icon="'mdi-logout'"
                             title="Se déconnecter"
-                            @click="void"
+                            @click="logout"
                         ></v-list-item>
                     </v-list>
                 </v-menu>
             </template>
-
-            <!-- <template> -->
-            <v-btn to="/login" variant="text">
-                <v-icon start>mdi-login</v-icon>
-                Connexion
-            </v-btn>
-            <!-- </template> -->
+            <template v-else>
+                <v-btn to="/login" variant="text">
+                    <v-icon start>mdi-login</v-icon>
+                    Connexion
+                </v-btn>
+            </template>
         </v-app-bar>
 
         <v-navigation-drawer v-model="drawer" temporary>
@@ -81,40 +98,40 @@ const drawer = ref(false);
                     title="Accueil"
                 ></v-list-item>
 
-                <!-- <template> -->
-                <v-list-item
-                    to="/documents"
-                    prepend-icon="mdi-file-document-multiple"
-                    title="Documents"
-                ></v-list-item>
-                <v-list-item
-                    to="/upload"
-                    prepend-icon="mdi-upload"
-                    title="Téléverser"
-                ></v-list-item>
-                <!-- </template> -->
+                <template v-if="authStore.is_authenticated">
+                    <v-list-item
+                        to="/documents"
+                        prepend-icon="mdi-file-document-multiple"
+                        title="Documents"
+                    ></v-list-item>
+                    <v-list-item
+                        to="/upload"
+                        prepend-icon="mdi-upload"
+                        title="Téléverser"
+                    ></v-list-item>
+                </template>
 
                 <v-divider></v-divider>
 
-                <!-- <template> -->
-                <v-list-item
-                    to="/profile"
-                    prepend-icon="mdi-account"
-                    title="Mon profil"
-                ></v-list-item>
-                <v-list-item
-                    prepend-icon="mdi-logout"
-                    title="Se déconnecter"
-                    @click="void"
-                ></v-list-item>
-                <!-- </template> -->
-                <!-- <template> -->
-                <v-list-item
-                    to="/login"
-                    prepend-icon="mdi-login"
-                    title="Connexion"
-                ></v-list-item>
-                <!-- </template> -->
+                <template v-if="authStore.is_authenticated">
+                    <v-list-item
+                        to="/profile"
+                        prepend-icon="mdi-account"
+                        title="Mon profil"
+                    ></v-list-item>
+                    <v-list-item
+                        prepend-icon="mdi-logout"
+                        title="Se déconnecter"
+                        @click="void"
+                    ></v-list-item>
+                </template>
+                <template v-else>
+                    <v-list-item
+                        to="/login"
+                        prepend-icon="mdi-login"
+                        title="Connexion"
+                    ></v-list-item>
+                </template>
             </v-list>
         </v-navigation-drawer>
 

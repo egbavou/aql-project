@@ -1,17 +1,21 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { useAuthStore } from "@/store/auth";
+import { computed, ref, watch } from "vue";
 import { useRouter } from "vue-router";
+import toast from "@/plugins/toast";
 
 const router = useRouter();
+const authStore = useAuthStore();
 
-const name = ref("");
-const email = ref("");
-const password = ref("");
+const form = ref({
+    email: "",
+    password: "",
+    name: "",
+});
 const confirm_password = ref("");
 const show_password = ref(false);
 const show_confirm_pass = ref(false);
 const form_valid = ref(true);
-const error = ref("");
 
 const name_rules = [
     (value: string) => !!value || "Le nom est requis",
@@ -28,24 +32,63 @@ const password_rules = [
     (value: string) => !!value || "Le mot de passe est requis",
     (value: string) =>
         value.length >= 6 ||
-        "Le mot de passe doit contenir au moins 6 caractères",
+        "Le mot de passe doit contenir au moins 8 caractères",
 ];
 
 const confirm_pass_rules = [
     (value: string) => !!value || "La confirmation du mot de passe est requise",
     (value: string) =>
-        value === password.value || "Les mots de passe ne correspondent pas",
+        value === form.value.password ||
+        "Les mots de passe ne correspondent pas",
 ];
+
+const form_errors = computed(() => authStore.errors?.errors || {});
+
+const clearFieldError = (field: string) => {
+    if (form_errors.value[field]) {
+        delete authStore.errors.errors[field];
+    }
+};
+
+watch(
+    form,
+    (new_form) => {
+        Object.keys(new_form).forEach((field) => {
+            if (form_errors.value[field]) {
+                delete authStore.errors.errors[field];
+            }
+        });
+    },
+    { deep: true }
+);
 
 async function register() {
     if (!form_valid.value) return;
 
-    if (password.value !== confirm_password.value) {
-        error.value = "Les mots de passe ne correspondent pas";
-        return;
+    const success = await authStore.register({
+        email: form.value.email,
+        name: form.value.name,
+        password: form.value.password,
+    });
+
+    if (authStore.errors) {
+        console.log(authStore.errors.errors);
+        if (
+            authStore.errors.status == "419" ||
+            authStore.errors.status == "401" ||
+            authStore.errors.status == "none"
+        ) {
+            toast(authStore.errors.message, "error");
+        }
     }
 
-    router.push("/documents");
+    if (success) {
+        toast(
+            "Inscription réussie ! Vous êtes à présent connecté !",
+            "success"
+        );
+        router.push("/documents");
+    }
 }
 </script>
 
@@ -58,39 +101,43 @@ async function register() {
                         <v-toolbar-title>Inscription</v-toolbar-title>
                     </v-toolbar>
                     <v-card-text>
-                        <v-alert
-                            v-if="error != ''"
-                            type="error"
-                            variant="tonal"
-                            class="mb-4"
-                        >
-                            {{ error }}
-                        </v-alert>
-
                         <v-form v-model="form_valid" @submit.prevent="register">
                             <v-text-field
-                                v-model="name"
+                                v-model="form.name"
                                 :rules="name_rules"
                                 label="Nom complet"
+                                class="mb-3"
                                 prepend-inner-icon="mdi-account"
                                 variant="outlined"
                                 required
+                                :error-messages="
+                                    form_errors.name ? form_errors.name[0] : ''
+                                "
+                                @update:modelValue="clearFieldError('name')"
                             ></v-text-field>
 
                             <v-text-field
-                                v-model="email"
+                                v-model="form.email"
                                 :rules="email_rules"
                                 label="Email"
+                                class="mb-3"
                                 prepend-inner-icon="mdi-email"
                                 variant="outlined"
                                 required
+                                :error-messages="
+                                    form_errors.email
+                                        ? form_errors.email[0]
+                                        : ''
+                                "
+                                @update:modelValue="clearFieldError('email')"
                             ></v-text-field>
 
                             <v-text-field
-                                v-model="password"
+                                v-model="form.password"
                                 :rules="password_rules"
                                 :type="show_password ? 'text' : 'password'"
                                 label="Mot de passe"
+                                class="mb-3"
                                 prepend-inner-icon="mdi-lock"
                                 variant="outlined"
                                 required
@@ -100,13 +147,20 @@ async function register() {
                                 @click:append-inner="
                                     show_password = !show_password
                                 "
+                                :error-messages="
+                                    form_errors.password
+                                        ? form_errors.password[0]
+                                        : ''
+                                "
+                                @update:modelValue="clearFieldError('password')"
                             ></v-text-field>
 
                             <v-text-field
-                                v-model="confirmPassword"
+                                v-model="confirm_password"
                                 :rules="confirm_pass_rules"
                                 :type="show_confirm_pass ? 'text' : 'password'"
                                 label="Confirmer le mot de passe"
+                                class="mb-3"
                                 prepend-inner-icon="mdi-lock-check"
                                 variant="outlined"
                                 required
