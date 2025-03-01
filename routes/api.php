@@ -1,13 +1,14 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\TagController;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\AccessController;
+use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\Auth\AuthController;
-use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\PasswordResetController;
-use App\Http\Controllers\DocumentController;
-use App\Http\Controllers\TagController;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\ForgotPasswordController;
 
 Route::prefix('auth')
     ->group(function () {
@@ -25,6 +26,17 @@ Route::get('tags', [TagController::class, 'index']);
 Route::get('documents/token/{token}', [DocumentController::class, 'showByToken']);
 Route::get('documents/download-by-token/{token}', [DocumentController::class, 'downloadByToken']);
 
+Route::prefix('users')
+    ->middleware('auth:sanctum')
+    ->group(function () {
+       
+        Route::get('/current-user', [UserController::class, 'show']);
+        Route::post('/{id}', [UserController::class, 'update']);
+        Route::delete('/{id}', [UserController::class, 'delete']);
+       
+    });
+
+
 Route::prefix('documents')
     ->middleware('auth:sanctum')
     ->group(function () {
@@ -39,7 +51,6 @@ Route::prefix('documents')
         Route::post('/{id}/link-share', [AccessController::class, 'linkStore']);
         Route::get('download/{id}', [DocumentController::class, 'download']);
     });
-
 
 Route::delete('accesses/{id}', [AccessController::class, 'destroy'])
     ->middleware('auth:sanctum');
