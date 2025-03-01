@@ -14,6 +14,15 @@ export interface LoginData {
 	password: string
 }
 
+export interface ForgotPasswordData {
+	email: string
+}
+
+export interface ResetPasswordData {
+	token: string,
+	password: string
+}
+
 export interface RegisterData {
 	name: string
 	email: string
@@ -44,10 +53,10 @@ export const useAuthStore = defineStore('auth', () => {
 		errors.value = null
 
 		try {
-			await axios.get("http://127.0.0.1:8000/sanctum/csrf-cookie");
+			await axios.get(`${import.meta.env.VITE_API_URL}/sanctum/csrf-cookie`);
 
 			const response = await axios.post<LoginApiResponse>(
-				'http://127.0.0.1:8000/api/auth/login',
+				`${import.meta.env.VITE_API_URL}/api/auth/login`,
 				formdata
 			);
 
@@ -88,10 +97,10 @@ export const useAuthStore = defineStore('auth', () => {
 		errors.value = null
 
 		try {
-			await axios.get("http://127.0.0.1:8000/sanctum/csrf-cookie");
+			await axios.get(`${import.meta.env.VITE_API_URL}/sanctum/csrf-cookie`);
 
 			const response = await axios.post<LoginApiResponse>(
-				'http://127.0.0.1:8000/api/auth/register',
+				`${import.meta.env.VITE_API_URL}/api/auth/register`,
 				formdata
 			);
 
@@ -139,18 +148,16 @@ export const useAuthStore = defineStore('auth', () => {
 				"Content-Type": "application/json",
 				"Authorization": `Bearer ${user.value?.token}`
 			}
-			await axios.get("http://127.0.0.1:8000/sanctum/csrf-cookie", {
+			await axios.get(`${import.meta.env.VITE_API_URL}/sanctum/csrf-cookie`, {
 				headers: headers
 			});
 
-			const response = await axios.post('http://127.0.0.1:8000/api/auth/logout', {}, {
+			const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/logout`, {}, {
 				headers: headers
 			});
 
-			console.log(1)
-			if (response.status == 404) {
+			if (response.status == 204) {
 				user.value = null
-				console.log(2)
 
 				return true
 			}
@@ -170,6 +177,75 @@ export const useAuthStore = defineStore('auth', () => {
 		}
 	}
 
+	async function forgotPassword(formdata: ForgotPasswordData) {
+		loading.value = true
+		errors.value = null
+
+		try {
+			await axios.get(`${import.meta.env.VITE_API_URL}/sanctum/csrf-cookie`);
+
+			const response = await axios.post(
+				`${import.meta.env.VITE_API_URL}/api/auth/forgot-password`,
+				formdata
+			);
+
+			loading.value = false;
+
+			if (response.status == 204) return true
+
+
+		} catch (error) {
+			loading.value = false;
+
+			if (axios.isAxiosError(error) && error.response) {
+				if (error.response.status == 422) {
+					errors.value = { 'status': '422', 'errors': error.response.data.errors };
+				} else if (error.response.status == 419) {
+					errors.value = { 'status': '419', 'message': 'Page expirée. Veuillez actualiser la page' }
+				}
+			} else {
+				errors.value = { 'status': 'none', 'message': 'Une erreur s\'est produite. Veuillez réessayer' }
+			}
+
+			return false
+		}
+	}
+
+	async function resetPassword(formdata: ResetPasswordData) {
+		loading.value = true
+		errors.value = null
+
+		try {
+			await axios.get(`${import.meta.env.VITE_API_URL}/sanctum/csrf-cookie`);
+
+			const response = await axios.post(
+				`${import.meta.env.VITE_API_URL}/api/auth/password-reset`,
+				formdata
+			);
+
+			loading.value = false;
+
+			if (response.status == 204) return true
+
+		} catch (error) {
+			loading.value = false;
+
+			if (axios.isAxiosError(error) && error.response) {
+				if (error.response.status == 422) {
+					errors.value = { 'status': '422', 'errors': error.response.data.errors };
+				} else if (error.response.status == 419) {
+					errors.value = { 'status': '419', 'message': 'Page expirée. Veuillez actualiser la page' }
+				} else if (error.response.status == 400) {
+					errors.value = { 'status': '400', 'message': 'Code incorrect ou code expiré' }
+				}
+			} else {
+				errors.value = { 'status': 'none', 'message': 'Une erreur s\'est produite. Veuillez réessayer' }
+			}
+
+			return false
+		}
+	}
+
 	return {
 		user,
 		loading,
@@ -177,7 +253,9 @@ export const useAuthStore = defineStore('auth', () => {
 		is_authenticated,
 		login,
 		register,
-		logout
+		logout,
+		forgotPassword,
+		resetPassword
 	}
 }, {
 	persist: {

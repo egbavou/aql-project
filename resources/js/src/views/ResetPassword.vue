@@ -1,33 +1,21 @@
 <script setup lang="ts">
-import { useAuthStore } from "@/store/auth";
 import { computed, ref, watch } from "vue";
 import { useRouter } from "vue-router";
+import { useAuthStore } from "@/store/auth";
 import toast from "@/plugins/toast";
 
 const router = useRouter();
 const authStore = useAuthStore();
 
 const form = ref({
-    email: "",
+    token: "",
     password: "",
-    name: "",
 });
 const confirm_password = ref("");
 const show_password = ref(false);
 const show_confirm_pass = ref(false);
 const form_valid = ref(true);
-
-const name_rules = [
-    (value: string) => !!value || "Le nom est requis",
-    (value: string) =>
-        value.length >= 2 || "Le nom doit contenir au moins 2 caractères",
-];
-
-const email_rules = [
-    (value: string) => !!value || "L'email est requis",
-    (value: string) => /.+@.+\..+/.test(value) || "L'email doit être valide",
-];
-
+const token_rule = [(value: string) => !!value || "Le code est requis"];
 const password_rules = [
     (value: string) => !!value || "Le mot de passe est requis",
     (value: string) =>
@@ -62,12 +50,11 @@ watch(
     { deep: true }
 );
 
-async function register() {
+async function resetPassword() {
     if (!form_valid.value) return;
 
-    const success = await authStore.register({
-        email: form.value.email,
-        name: form.value.name,
+    const success = await authStore.resetPassword({
+        token: form.value.token,
         password: form.value.password,
     });
 
@@ -75,7 +62,7 @@ async function register() {
         console.log(authStore.errors.errors);
         if (
             authStore.errors.status == "419" ||
-            authStore.errors.status == "401" ||
+            authStore.errors.status == "400" ||
             authStore.errors.status == "none"
         ) {
             toast(authStore.errors.message, "error");
@@ -83,11 +70,8 @@ async function register() {
     }
 
     if (success) {
-        toast(
-            "Inscription réussie ! Vous êtes à présent connecté !",
-            "success"
-        );
-        router.push("/documents");
+        toast("Mot de passe réinitialisé. Connectez-vous à présent", "success");
+        router.push("/login");
     }
 }
 </script>
@@ -98,38 +82,23 @@ async function register() {
             <v-col cols="12" sm="8" md="6" lg="4">
                 <v-card class="elevation-12">
                     <v-toolbar color="primary" dark flat>
-                        <v-toolbar-title>Inscription</v-toolbar-title>
+                        <v-toolbar-title
+                            >Réinitialiser mot de passe</v-toolbar-title
+                        >
                     </v-toolbar>
                     <v-card-text>
-                        <v-form v-model="form_valid" @submit.prevent="register">
+                        <v-form
+                            v-model="form_valid"
+                            @submit.prevent="resetPassword"
+                        >
                             <v-text-field
-                                v-model="form.name"
-                                :rules="name_rules"
-                                label="Nom complet"
-                                class="mb-3"
-                                prepend-inner-icon="mdi-account"
-                                variant="outlined"
-                                required
-                                :error-messages="
-                                    form_errors.name ? form_errors.name[0] : ''
-                                "
-                                @update:modelValue="clearFieldError('name')"
-                            ></v-text-field>
-
-                            <v-text-field
-                                v-model="form.email"
-                                :rules="email_rules"
-                                label="Email"
-                                class="mb-3"
+                                v-model="form.token"
+                                :rules="token_rule"
+                                label="Code"
                                 prepend-inner-icon="mdi-email"
                                 variant="outlined"
                                 required
-                                :error-messages="
-                                    form_errors.email
-                                        ? form_errors.email[0]
-                                        : ''
-                                "
-                                @update:modelValue="clearFieldError('email')"
+                                class="mb-3"
                             ></v-text-field>
 
                             <v-text-field
@@ -181,7 +150,7 @@ async function register() {
                                 class="text-decoration-none"
                                 style="color: blue"
                             >
-                                Déjà un compte ? Se connecter
+                                Se connecter
                             </router-link>
                         </div>
                     </v-card-text>
@@ -189,10 +158,11 @@ async function register() {
                         <v-spacer></v-spacer>
                         <v-btn
                             color="primary"
+                            :loading="authStore.loading"
                             :disabled="!form_valid"
-                            @click="register"
+                            @click="resetPassword"
                         >
-                            S'inscrire
+                            Réinitialiser
                         </v-btn>
                     </v-card-actions>
                 </v-card>

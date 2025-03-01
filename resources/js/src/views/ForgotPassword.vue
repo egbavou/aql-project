@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/store/auth";
 import toast from "@/plugins/toast";
@@ -7,30 +7,46 @@ import toast from "@/plugins/toast";
 const router = useRouter();
 const authStore = useAuthStore();
 
-const email = ref("");
-const password = ref("");
-const show_password = ref(false);
+const form = ref({
+    email: "",
+});
 const form_valid = ref(true);
 const email_rules = [
     (value: string) => !!value || "L'email est requis",
     (value: string) => /.+@.+\..+/.test(value) || "L'email doit être valide",
 ];
-const password_rules = [
-    (value: string) => !!value || "Le mot de passe est requis",
-];
 
-async function login() {
+const form_errors = computed(() => authStore.errors?.errors || {});
+
+const clearFieldError = (field: string) => {
+    if (form_errors.value[field]) {
+        delete authStore.errors.errors[field];
+    }
+};
+
+watch(
+    form,
+    (new_form) => {
+        Object.keys(new_form).forEach((field) => {
+            if (form_errors.value[field]) {
+                delete authStore.errors.errors[field];
+            }
+        });
+    },
+    { deep: true }
+);
+
+async function forgotPassword() {
     if (!form_valid.value) return;
 
-    const success = await authStore.login({
-        email: email.value,
-        password: password.value,
+    const success = await authStore.forgotPassword({
+        email: form.value.email,
     });
 
     if (authStore.errors) {
+        console.log(authStore.errors.errors);
         if (
             authStore.errors.status == "419" ||
-            authStore.errors.status == "401" ||
             authStore.errors.status == "none"
         ) {
             toast(authStore.errors.message, "error");
@@ -38,8 +54,8 @@ async function login() {
     }
 
     if (success) {
-        toast("Vous êtes à présent connecté", "success");
-        router.push("/documents");
+        toast("Un code a été envoyé à votre adresse email", "success");
+        router.push("/password-reset");
     }
 }
 </script>
@@ -50,52 +66,36 @@ async function login() {
             <v-col cols="12" sm="8" md="6" lg="4">
                 <v-card class="elevation-12">
                     <v-toolbar color="primary" dark flat>
-                        <v-toolbar-title>Connexion</v-toolbar-title>
+                        <v-toolbar-title>Mot de passe oublié</v-toolbar-title>
                     </v-toolbar>
                     <v-card-text>
-                        <v-form v-model="form_valid" @submit.prevent="login">
+                        <v-form
+                            v-model="form_valid"
+                            @submit.prevent="forgotPassword"
+                        >
                             <v-text-field
-                                v-model="email"
+                                v-model="form.email"
                                 :rules="email_rules"
                                 label="Email"
                                 prepend-inner-icon="mdi-email"
                                 variant="outlined"
                                 required
-                            ></v-text-field>
-
-                            <v-text-field
-                                v-model="password"
-                                :rules="password_rules"
-                                :type="show_password ? 'text' : 'password'"
-                                label="Mot de passe"
-                                prepend-inner-icon="mdi-lock"
-                                variant="outlined"
-                                required
-                                :append-inner-icon="
-                                    show_password ? 'mdi-eye-off' : 'mdi-eye'
+                                :error-messages="
+                                    form_errors.email
+                                        ? form_errors.email[0]
+                                        : ''
                                 "
-                                @click:append-inner="
-                                    show_password = !show_password
-                                "
+                                @update:modelValue="clearFieldError('email')"
                             ></v-text-field>
                         </v-form>
 
                         <div class="d-flex justify-end">
                             <router-link
-                                to="/register"
+                                to="/login"
                                 class="text-decoration-none"
                                 style="color: blue"
                             >
-                                Pas encore de compte ? S'inscrire
-                            </router-link>
-                        </div>
-                        <div class="d-flex justify-end">
-                            <router-link
-                                to="/forgot-password"
-                                class="text-decoration-none"
-                                style="color: blue"
-                            >
-                                Mot de passe oublié ?
+                                Se connecter
                             </router-link>
                         </div>
                     </v-card-text>
@@ -105,9 +105,9 @@ async function login() {
                             color="primary"
                             :loading="authStore.loading"
                             :disabled="!form_valid"
-                            @click="login"
+                            @click="forgotPassword"
                         >
-                            Se connecter
+                            Réinitialiser
                         </v-btn>
                     </v-card-actions>
                 </v-card>

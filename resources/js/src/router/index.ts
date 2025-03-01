@@ -8,6 +8,8 @@ import DocumentView from '@/views/DocumentView.vue'
 import Login from '@/views/Login.vue'
 import Register from '@/views/Register.vue'
 import Profile from '@/views/Profile.vue'
+import ForgotPassword from '@/views/ForgotPassword.vue'
+import ResetPassword from '@/views/ResetPassword.vue'
 
 const routes = [
 	{
@@ -38,13 +40,25 @@ const routes = [
 		path: '/login',
 		name: 'Login',
 		component: Login,
-		meta: { guestOnly: false }
+		meta: { guestOnly: true }
 	},
 	{
 		path: '/register',
 		name: 'Register',
 		component: Register,
-		meta: { guestOnly: false }
+		meta: { guestOnly: true }
+	},
+	{
+		path: '/forgot-password',
+		name: 'ForgotPassword',
+		component: ForgotPassword,
+		meta: { guestOnly: true }
+	},
+	{
+		path: '/password-reset',
+		name: 'ResetPassword',
+		component: ResetPassword,
+		meta: { guestOnly: true }
 	},
 	{
 		path: '/profile',
