@@ -1,8 +1,6 @@
 # aql project
 
-## API Setup
-
-### Prerequisites
+## Prerequisites
 - [Git](https://git-scm.com/downloads)
 - [PHP (^8.2)](https://www.php.net/downloads.php)
 - [Composer](https://getcomposer.org/download/)
@@ -10,7 +8,18 @@
 - [Docker](https://docs.docker.com/get-started/get-docker/) (not required)
 - [Node](https://nodejs.org/en/download)
 
-### Steps
+## Full project setup, using docker
+```bash
+git clone https://github.com/egbavou/aql-project
+cd aql-project
+docker compose build
+docker compose up -d
+# Backend running on the port 8000
+# phpmyadmin, running on the port 12234
+# maildev running on the port 1080
+```
+
+## API Setup (without docker)
 ```bash
 git clone https://github.com/egbavou/aql-project
 cd aql-project
@@ -27,7 +36,7 @@ php artisan test
 docker run -p 1080:1080 -p 1025:1025 maildev/maildev
 php artisan serve
 ```
-## Frontend setup
+## Frontend setup (without docker)
 
 ```bash
 npm install
