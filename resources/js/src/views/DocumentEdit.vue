@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import toast from "@/plugins/toast";
 import { useDocumentStore } from "@/store/documents";
-import { computed, ref, watch } from "vue";
-import { useRouter } from "vue-router";
+import { computed, onMounted, ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 
+const route = useRoute();
 const router = useRouter();
 const doc_store = useDocumentStore();
+
+const doc_id = route.params.id;
 
 const languages = ref([
     { code: "fr", name: "Français" },
@@ -34,9 +37,7 @@ const author_rule = [
 ];
 const pages_rule = [
     (value: number) => !!value || "Le nombre de pages est requis",
-    (value: number) =>
-        (!Number.isInteger(value) && value > 0) ||
-        "Le nombre de page doit être supérieur à 0",
+    (value: number) => value > 0 || "Le nombre de page doit être supérieur à 0",
 ];
 const language_rule = [
     (value: string) => !!value || "La langue du contenu est requis",
@@ -47,7 +48,6 @@ const visibility_rule = [
 
 const max_size = 20480 * 1024;
 const file_rule = [
-    (value: File | null) => !!value || "Le document est requis",
     (value: File | null) =>
         (value && value.type === "application/pdf") ||
         "Le fichier doit être au format PDF",
@@ -100,10 +100,10 @@ watch(
     { deep: true }
 );
 
-async function addDocument() {
+async function updateDocument(id: number) {
     if (!form_valid.value) return;
 
-    const [success, title] = await doc_store.addDocument({
+    const [success, title] = await doc_store.updateDocument(id, {
         title: form.value.title,
         author: form.value.author,
         pages: Number.parseInt(form.value.pages),
@@ -123,23 +123,41 @@ async function addDocument() {
         }
     }
     if (success) {
-        toast(`Document: ${title} publié.`, "success");
-        router.push("/documents");
+        toast(`Document: ${title} modifié.`, "success");
     }
 }
+
+onMounted(async () => {
+    await doc_store.getDocumentById(doc_id);
+    if (doc_store.document) {
+        form.value = {
+            title: doc_store.document.title,
+            author: doc_store.document.author,
+            pages: doc_store.document.pages,
+            language: doc_store.document.language,
+            visibility: doc_store.document.visibility,
+            tags: doc_store.document.tags?.map((tag) => tag.name) || [],
+            file: null,
+        };
+    }
+});
+
+const doc = computed(() => doc_store.document);
 </script>
 
 <template>
     <v-container>
         <v-row justify="center">
             <v-col cols="12" md="8">
-                <h1 class="text-h4 mb-6">Téléverser un document (mémoire)</h1>
+                <h1 class="text-h4 mb-6">Modification de {{ doc?.title }}</h1>
 
                 <v-card>
                     <v-card-text>
                         <v-form
                             v-model="form_valid"
-                            @submit.prevent="addDocument"
+                            @submit.prevent="
+                                updateDocument(Number.parseInt(doc?.id))
+                            "
                         >
                             <v-row>
                                 <v-col cols="12">
@@ -253,9 +271,7 @@ async function addDocument() {
                                     <v-file-input
                                         v-model="form.file"
                                         label="Document *"
-                                        :rules="file_rule"
                                         @change="onFileChange"
-                                        required
                                         variant="outlined"
                                         accept=".pdf"
                                         prepend-icon="mdi-file-upload"
@@ -326,10 +342,10 @@ async function addDocument() {
                                         color="primary"
                                         :loading="doc_store.loading"
                                         :disabled="!form_valid"
-                                        @click="addDocument"
+                                        @click="updateDocument(doc?.id)"
                                     >
                                         <v-icon start>mdi-cloud-upload</v-icon>
-                                        Téléverser
+                                        Modifier
                                     </v-btn>
                                 </v-col>
                             </v-row>

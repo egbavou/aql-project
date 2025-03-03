@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useDocumentStore } from "../store/documents";
+import { useAuthStore } from "@/store/auth";
+import toast from "@/plugins/toast";
+import { useRouter } from "vue-router";
 
+const router = useRouter();
+const auth_store = useAuthStore();
 const documentStore = useDocumentStore();
 const show_change_pass_dialog = ref(false);
 const current_password = ref("");
@@ -11,6 +16,15 @@ const confirm_new_password = ref("");
 const user_docs = documentStore.documents.slice(0, 2);
 
 async function changePassword() {}
+
+async function logout() {
+    const success = await auth_store.logout();
+
+    if (success) {
+        toast("Vous êtes déconnecté à présent", "success");
+        router.push("/");
+    }
+}
 </script>
 
 <template>
@@ -22,14 +36,16 @@ async function changePassword() {}
                 <v-card class="mb-4">
                     <v-card-text class="text-center">
                         <v-avatar size="120" color="primary" class="mb-4">
-                            <span class="text-h4 text-white">RA</span>
+                            <span class="text-h4 text-white">{{
+                                auth_store.user?.name.substr(0, 2)
+                            }}</span>
                         </v-avatar>
-                        <h2 class="text-h5">Test Test</h2>
+                        <h2 class="text-h5">{{ auth_store.user?.name }}</h2>
                         <p class="text-subtitle-1 text-medium-emphasis">
-                            test@test.tes
+                            {{ auth_store.user?.email }}
                         </p>
                         <v-chip class="mt-2" color="primary" size="small">
-                            Utilisateur
+                            En ligne
                         </v-chip>
                     </v-card-text>
                 </v-card>
@@ -51,7 +67,8 @@ async function changePassword() {}
                             block
                             color="error"
                             variant="outlined"
-                            @click="void"
+                            :loading="auth_store.loading"
+                            @click="logout"
                         >
                             <v-icon start>mdi-logout</v-icon>
                             Se déconnecter
@@ -60,7 +77,7 @@ async function changePassword() {}
                 </v-card>
             </v-col>
 
-            <v-col cols="12" md="12">
+            <v-col cols="12" md="8">
                 <v-card>
                     <v-card-title
                         class="d-flex justify-space-between align-center"

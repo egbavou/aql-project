@@ -5,7 +5,7 @@ import { useAuthStore } from "@/store/auth";
 import toast from "@/plugins/toast";
 
 const router = useRouter();
-const authStore = useAuthStore();
+const auth_store = useAuthStore();
 
 const form = ref({
     token: "",
@@ -30,11 +30,11 @@ const confirm_pass_rules = [
         "Les mots de passe ne correspondent pas",
 ];
 
-const form_errors = computed(() => authStore.errors?.errors || {});
+const form_errors = computed(() => auth_store.errors?.errors || {});
 
 const clearFieldError = (field: string) => {
     if (form_errors.value[field]) {
-        delete authStore.errors.errors[field];
+        delete auth_store.errors.errors[field];
     }
 };
 
@@ -43,7 +43,7 @@ watch(
     (new_form) => {
         Object.keys(new_form).forEach((field) => {
             if (form_errors.value[field]) {
-                delete authStore.errors.errors[field];
+                delete auth_store.errors.errors[field];
             }
         });
     },
@@ -53,19 +53,19 @@ watch(
 async function resetPassword() {
     if (!form_valid.value) return;
 
-    const success = await authStore.resetPassword({
+    const success = await auth_store.resetPassword({
         token: form.value.token,
         password: form.value.password,
     });
 
-    if (authStore.errors) {
-        console.log(authStore.errors.errors);
+    if (auth_store.errors) {
+        console.log(auth_store.errors.errors);
         if (
-            authStore.errors.status == "419" ||
-            authStore.errors.status == "400" ||
-            authStore.errors.status == "none"
+            auth_store.errors.status == "419" ||
+            auth_store.errors.status == "400" ||
+            auth_store.errors.status == "none"
         ) {
-            toast(authStore.errors.message, "error");
+            toast(auth_store.errors.message, "error");
         }
     }
 
@@ -158,7 +158,7 @@ async function resetPassword() {
                         <v-spacer></v-spacer>
                         <v-btn
                             color="primary"
-                            :loading="authStore.loading"
+                            :loading="auth_store.loading"
                             :disabled="!form_valid"
                             @click="resetPassword"
                         >

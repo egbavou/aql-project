@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import axios from 'axios'
+import { axiosError } from '@/helpers'
 
 export interface User {
 	id: string
@@ -76,17 +77,8 @@ export const useAuthStore = defineStore('auth', () => {
 			}
 
 		} catch (error) {
-			loading.value = false;
-
-			if (axios.isAxiosError(error) && error.response) {
-				if (error.response.status == 419) {
-					errors.value = { 'status': '419', 'message': 'Page expirée. Veuillez actualiser la page' }
-				} else if (error.response.status == 401) {
-					errors.value = { 'status': '401', 'message': 'Email ou mot de passe incorrect' }
-				}
-			} else {
-				errors.value = { 'status': 'none', 'message': 'Une erreur s\'est produite. Veuillez réessayer' }
-			}
+			loading.value = false
+			errors.value = axiosError(error)
 
 			return false
 		}
@@ -120,19 +112,8 @@ export const useAuthStore = defineStore('auth', () => {
 			}
 
 		} catch (error) {
-			loading.value = false;
-
-			if (axios.isAxiosError(error) && error.response) {
-				if (error.response.status == 422) {
-					errors.value = { 'status': '422', 'errors': error.response.data.errors };
-				} else if (error.response.status == 419) {
-					errors.value = { 'status': '419', 'message': 'Page expirée. Veuillez actualiser la page' }
-				} else if (error.response.status == 401) {
-					errors.value = { 'status': '401', 'message': 'Email ou mot de passe incorrect' }
-				}
-			} else {
-				errors.value = { 'status': 'none', 'message': 'Une erreur s\'est produite. Veuillez réessayer' }
-			}
+			loading.value = false
+			errors.value = axiosError(error)
 
 			return false
 		}
@@ -140,6 +121,7 @@ export const useAuthStore = defineStore('auth', () => {
 
 	async function logout() {
 		errors.value = null
+		loading.value = true;
 
 		try {
 
@@ -156,6 +138,9 @@ export const useAuthStore = defineStore('auth', () => {
 				headers: headers
 			});
 
+
+			loading.value = false;
+
 			if (response.status == 204) {
 				user.value = null
 
@@ -163,15 +148,8 @@ export const useAuthStore = defineStore('auth', () => {
 			}
 
 		} catch (error) {
-			loading.value = false;
-
-			if (axios.isAxiosError(error) && error.response) {
-				if (error.response.status == 419) {
-					errors.value = { 'status': '419', 'message': 'Page expirée. Veuillez actualiser la page' }
-				}
-			} else {
-				errors.value = { 'status': 'none', 'message': 'Une erreur s\'est produite. Veuillez réessayer' }
-			}
+			loading.value = false
+			errors.value = axiosError(error)
 
 			return false
 		}
@@ -195,17 +173,8 @@ export const useAuthStore = defineStore('auth', () => {
 
 
 		} catch (error) {
-			loading.value = false;
-
-			if (axios.isAxiosError(error) && error.response) {
-				if (error.response.status == 422) {
-					errors.value = { 'status': '422', 'errors': error.response.data.errors };
-				} else if (error.response.status == 419) {
-					errors.value = { 'status': '419', 'message': 'Page expirée. Veuillez actualiser la page' }
-				}
-			} else {
-				errors.value = { 'status': 'none', 'message': 'Une erreur s\'est produite. Veuillez réessayer' }
-			}
+			loading.value = false
+			errors.value = axiosError(error)
 
 			return false
 		}

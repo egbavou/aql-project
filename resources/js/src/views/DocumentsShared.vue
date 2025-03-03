@@ -10,11 +10,11 @@ const selected_tags = ref<string[]>([]);
 const all_tags = ["a", "b", "c"];
 
 function onPageChange() {
-    doc_store.getDocuments();
+    doc_store.getDocumentsMe("shared");
 }
 
 onMounted(async () => {
-    await doc_store.getDocuments();
+    await doc_store.getDocumentsMe("shared");
 });
 
 const docs = computed(() => doc_store.documents);
@@ -22,7 +22,7 @@ const docs = computed(() => doc_store.documents);
 
 <template>
     <v-container>
-        <h1 class="text-h4 mb-6">Bibliothèque de documents</h1>
+        <h1 class="text-h4 mb-6">Documents partagés</h1>
 
         <v-card class="mb-6">
             <v-card-text>
@@ -92,10 +92,6 @@ const docs = computed(() => doc_store.documents);
                             <v-icon start>mdi-eye</v-icon>
                             Voir
                         </v-btn>
-                        <v-btn variant="text" color="secondary" target="_blank">
-                            <v-icon start>mdi-download</v-icon>
-                            Télécharger
-                        </v-btn>
                         <v-spacer></v-spacer>
                         <v-btn icon>
                             <v-icon>mdi-share-variant</v-icon>
@@ -114,12 +110,10 @@ const docs = computed(() => doc_store.documents);
 
         <v-row v-if="!doc_store.loading && docs.length == 0" class="mt-4">
             <v-col cols="12" class="text-center">
-                <v-alert type="info">
-                    Aucun document ne correspond à votre recherche.
-                </v-alert>
+                <v-alert type="info"> Aucun document trouvé. </v-alert>
             </v-col>
         </v-row>
-        <v-row justify="center" v-if="!doc_store.loading">
+        <v-row justify="center" v-if="!doc_store.loading && docs.length > 0">
             <v-pagination
                 v-model="doc_store.current_page"
                 :length="doc_store.last_page"

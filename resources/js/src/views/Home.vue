@@ -1,10 +1,17 @@
 <script setup lang="ts">
 import { useRouter } from "vue-router";
 import { useDocumentStore } from "@/store/documents";
+import { formatDate, convertSize } from "@/helpers";
+import { computed, onMounted } from "vue";
 
 const router = useRouter();
 const doc_store = useDocumentStore();
-const recent_documents = doc_store.documents.slice(0, 3);
+
+onMounted(async () => {
+    await doc_store.getDocuments();
+});
+
+const recent_docs = computed(() => doc_store.documents.slice(0, 6));
 
 function navigateToDocuments() {
     router.push("/documents");
@@ -58,29 +65,45 @@ function navigateToUpload() {
         <v-row>
             <v-col cols="12">
                 <h2 class="text-h5 mb-4">Documents récents</h2>
-                <v-row>
+                <v-row v-if="!doc_store.loading">
                     <v-col
-                        v-for="doc in recent_documents"
+                        v-for="doc in recent_docs"
                         :key="doc.id"
                         cols="12"
-                        md="4"
+                        md="6"
+                        lg="4"
                     >
                         <v-card class="mx-auto" height="100%">
-                            <v-card-title>{{ doc.title }}</v-card-title>
-                            <v-card-subtitle
-                                >{{ doc.author }} •
-                                {{ doc.upload_date }}</v-card-subtitle
-                            >
+                            <v-card-title class="text-truncate">{{
+                                doc.title
+                            }}</v-card-title>
+                            <v-card-subtitle>
+                                <v-icon small class="mr-1">mdi-account</v-icon>
+                                {{ doc.author }}
+                                <span class="mx-1">•</span>
+                                <v-icon small class="mr-1">mdi-calendar</v-icon>
+                                {{ formatDate(doc.created_at) }}
+                            </v-card-subtitle>
                             <v-card-text>
-                                <p>{{ doc.description }}</p>
-                                <div class="d-flex mt-2">
+                                <div class="d-flex align-center mb-2">
+                                    <v-icon small class="mr-1"
+                                        >mdi-download</v-icon
+                                    >
+                                    <span>{{ doc.downloads }}</span>
+                                    <span class="mx-2">•</span>
+                                    <v-icon small class="mr-1"
+                                        >mdi-harddisk</v-icon
+                                    >
+                                    <span>{{ convertSize(doc.size) }}</span>
+                                </div>
+                                <div class="d-flex flex-wrap">
                                     <v-chip
                                         v-for="tag in doc.tags"
-                                        :key="tag"
+                                        :key="tag.id"
                                         size="small"
-                                        class="mr-1"
+                                        class="mr-1 mb-1"
                                     >
-                                        {{ tag }}
+                                        {{ tag.name }}
                                     </v-chip>
                                 </div>
                             </v-card-text>
@@ -90,14 +113,36 @@ function navigateToUpload() {
                                     color="primary"
                                     :to="`/document/${doc.id}`"
                                 >
-                                    Voir le document
+                                    <v-icon start>mdi-eye</v-icon>
+                                    Voir
+                                </v-btn>
+                                <v-btn
+                                    variant="text"
+                                    color="secondary"
+                                    target="_blank"
+                                >
+                                    <v-icon start>mdi-download</v-icon>
+                                    Télécharger
+                                </v-btn>
+                                <v-spacer></v-spacer>
+                                <v-btn icon>
+                                    <v-icon>mdi-share-variant</v-icon>
                                 </v-btn>
                             </v-card-actions>
                         </v-card>
                     </v-col>
                 </v-row>
+                <v-row v-else justify="center">
+                    <v-progress-circular
+                        indeterminate
+                        color="primary"
+                        size="64"
+                    ></v-progress-circular>
+                </v-row>
             </v-col>
         </v-row>
+
+        <v-divider class="my-8"></v-divider>
 
         <v-row class="mt-10">
             <v-col cols="12" md="4">

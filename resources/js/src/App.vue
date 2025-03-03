@@ -43,6 +43,29 @@ async function logout() {
                         <v-icon start>mdi-file-document-multiple</v-icon>
                         Documents
                     </v-btn>
+                    <v-menu>
+                        <template v-slot:activator="{ props }">
+                            <v-btn variant="text" v-bind="props"
+                                ><v-icon start
+                                    >mdi-file-document-multiple</v-icon
+                                >
+                                Mes documents
+                            </v-btn>
+                        </template>
+                        <v-list>
+                            <v-list-item to="/documents/created">
+                                <v-list-item-title
+                                    >Documents publiés</v-list-item-title
+                                >
+                            </v-list-item>
+                            <v-list-item to="/documents/shared">
+                                <v-list-item-title
+                                    >Documents partagés avec
+                                    moi</v-list-item-title
+                                >
+                            </v-list-item>
+                        </v-list>
+                    </v-menu>
                     <v-btn to="/upload" variant="text">
                         <v-icon start>mdi-upload</v-icon>
                         Téléverser
@@ -103,6 +126,16 @@ async function logout() {
                         to="/documents"
                         prepend-icon="mdi-file-document-multiple"
                         title="Documents"
+                    ></v-list-item>
+                    <v-list-item
+                        to="/documents/created"
+                        prepend-icon="mdi-file-document-multiple"
+                        title="Documents publiés"
+                    ></v-list-item>
+                    <v-list-item
+                        to="/documents/shared"
+                        prepend-icon="mdi-file-document-multiple"
+                        title="Documents partagés avec moi"
                     ></v-list-item>
                     <v-list-item
                         to="/upload"

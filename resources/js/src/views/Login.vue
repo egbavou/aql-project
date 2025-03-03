@@ -5,7 +5,7 @@ import { useAuthStore } from "@/store/auth";
 import toast from "@/plugins/toast";
 
 const router = useRouter();
-const authStore = useAuthStore();
+const auth_store = useAuthStore();
 
 const email = ref("");
 const password = ref("");
@@ -22,18 +22,18 @@ const password_rules = [
 async function login() {
     if (!form_valid.value) return;
 
-    const success = await authStore.login({
+    const success = await auth_store.login({
         email: email.value,
         password: password.value,
     });
 
-    if (authStore.errors) {
+    if (auth_store.errors) {
         if (
-            authStore.errors.status == "419" ||
-            authStore.errors.status == "401" ||
-            authStore.errors.status == "none"
+            auth_store.errors.status == "419" ||
+            auth_store.errors.status == "401" ||
+            auth_store.errors.status == "none"
         ) {
-            toast(authStore.errors.message, "error");
+            toast(auth_store.errors.message, "error");
         }
     }
 
@@ -103,7 +103,7 @@ async function login() {
                         <v-spacer></v-spacer>
                         <v-btn
                             color="primary"
-                            :loading="authStore.loading"
+                            :loading="auth_store.loading"
                             :disabled="!form_valid"
                             @click="login"
                         >

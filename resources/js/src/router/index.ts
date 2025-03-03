@@ -10,6 +10,9 @@ import Register from '@/views/Register.vue'
 import Profile from '@/views/Profile.vue'
 import ForgotPassword from '@/views/ForgotPassword.vue'
 import ResetPassword from '@/views/ResetPassword.vue'
+import DocumentsCreated from '@/views/DocumentsCreated.vue'
+import DocumentsShared from '@/views/DocumentsShared.vue'
+import DocumentEdit from '@/views/DocumentEdit.vue'
 
 const routes = [
 	{
@@ -24,6 +27,18 @@ const routes = [
 		meta: { requiresAuth: true }
 	},
 	{
+		path: '/documents/created',
+		name: 'DocumentsCreated',
+		component: DocumentsCreated,
+		meta: { requiresAuth: true }
+	},
+	{
+		path: '/documents/shared',
+		name: 'DocumentsShared',
+		component: DocumentsShared,
+		meta: { requiresAuth: true }
+	},
+	{
 		path: '/upload',
 		name: 'Upload',
 		component: Upload,
@@ -33,6 +48,13 @@ const routes = [
 		path: '/document/:id',
 		name: 'DocumentView',
 		component: DocumentView,
+		props: true,
+		meta: { requiresAuth: true }
+	},
+	{
+		path: '/document/edit/:id',
+		name: 'DocumentEdit',
+		component: DocumentEdit,
 		props: true,
 		meta: { requiresAuth: true }
 	},
