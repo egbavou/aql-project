@@ -138,7 +138,7 @@ async function logout() {
                         title="Documents partagés avec moi"
                     ></v-list-item>
                     <v-list-item
-                        to="/upload"
+                        to="/document/add"
                         prepend-icon="mdi-upload"
                         title="Téléverser"
                     ></v-list-item>

@@ -8,7 +8,7 @@ const route = useRoute();
 const router = useRouter();
 const doc_store = useDocumentStore();
 
-const doc_id = Number(route.params.id);
+let doc_id = Number(route.params.id);
 const is_edit = computed(() => !!doc_id);
 
 const languages = ref([
@@ -25,7 +25,7 @@ const visibilities = ref([
 const form = ref({
     title: "",
     author: "",
-    pages: "",
+    pages: 0,
     language: "",
     visibility: "",
     tags: [],
@@ -38,9 +38,7 @@ const author_rule = [
 ];
 const pages_rule = [
     (value: number) => !!value || "Le nombre de pages est requis",
-    (value: number) =>
-        (!Number.isInteger(value) && value > 0) ||
-        "Le nombre de page doit être supérieur à 0",
+    (value: number) => value > 0 || "Le nombre de page doit être supérieur à 0",
 ];
 const language_rule = [
     (value: string) => !!value || "La langue du contenu est requis",
@@ -107,7 +105,7 @@ watch(
 async function submitDocument() {
     if (!form_valid.value) return;
 
-    const payload = {
+    let payload = {
         title: form.value.title,
         author: form.value.author,
         pages: Number(form.value.pages),
@@ -117,7 +115,7 @@ async function submitDocument() {
         file: form.value.file,
     };
 
-    const success = false;
+    let success = false;
     let title = "";
 
     if (is_edit.value) {
@@ -137,26 +135,39 @@ async function submitDocument() {
             `Document: ${title} ${is_edit.value ? "modifié" : "publié"}.`,
             "success"
         );
-        router.push("/documents");
     }
 }
 
-onMounted(async () => {
-    if (is_edit.value) {
-        await doc_store.getDocumentById(doc_id);
-        if (doc_store.document) {
+watch(
+    () => route.params.id,
+    async (id) => {
+        console.log("Changement de route détecté, is_edit:", is_edit.value);
+
+        if (id) {
+            await doc_store.getDocumentById(id);
             form.value = {
-                title: doc_store.document.title,
-                author: doc_store.document.author,
-                pages: doc_store.document.pages.toString(),
-                language: doc_store.document.language,
-                visibility: doc_store.document.visibility,
-                tags: doc_store.document.tags?.map((tag) => tag.name) || [],
+                title: doc_store.document?.title || "",
+                author: doc_store.document?.author || "",
+                pages: doc_store.document?.pages || 0,
+                language: doc_store.document?.language || "",
+                visibility: doc_store.document?.visibility || "",
+                tags: doc_store.document?.tags?.map((tag) => tag.name) || [],
+                file: null,
+            };
+        } else {
+            form.value = {
+                title: "",
+                author: "",
+                pages: 0,
+                language: "",
+                visibility: "",
+                tags: [],
                 file: null,
             };
         }
-    }
-});
+    },
+    { immediate: true }
+);
 </script>
 
 <template>
@@ -164,7 +175,11 @@ onMounted(async () => {
         <v-row justify="center">
             <v-col cols="12" md="8">
                 <h1 class="text-h4 mb-6">
-                    {{ is_edit ? "Modifier" : "Téléverser" }} un document
+                    {{
+                        is_edit
+                            ? `Modifier le document (${form.title})`
+                            : "Téléverser un document"
+                    }}
                 </h1>
 
                 <v-card>
@@ -218,6 +233,7 @@ onMounted(async () => {
                                     <v-text-field
                                         v-model="form.pages"
                                         label="Nombre de pages *"
+                                        type="number"
                                         :rules="pages_rule"
                                         required
                                         variant="outlined"
@@ -285,7 +301,7 @@ onMounted(async () => {
                                     <v-file-input
                                         v-model="form.file"
                                         label="Document *"
-                                        :rules="file_rule"
+                                        :rules="is_edit ? [] : file_rule"
                                         @change="onFileChange"
                                         required
                                         variant="outlined"
@@ -361,12 +377,14 @@ onMounted(async () => {
                                         @click="submitDocument"
                                     >
                                         <v-icon start>{{
-                                            is_edit
+                                            route.params.id
                                                 ? "mdi-content-save"
                                                 : "mdi-cloud-upload"
                                         }}</v-icon>
                                         {{
-                                            is_edit ? "Modifier" : "Téléverser"
+                                            route.params.id
+                                                ? "Modifier"
+                                                : "Téléverser"
                                         }}
                                     </v-btn>
                                 </v-col>
