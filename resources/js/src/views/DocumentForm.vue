@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { clearFieldErrors } from "@/helpers";
 import toast from "@/plugins/toast";
 import { useDocumentStore } from "@/store/documents";
 import { computed, onMounted, ref, watch } from "vue";
@@ -82,25 +83,7 @@ function onFileChange(event: Event) {
     }
 }
 
-const form_errors = computed(() => doc_store.errors?.errors || {});
-
-const clearFieldError = (field: string) => {
-    if (form_errors.value[field]) {
-        delete doc_store.errors.errors[field];
-    }
-};
-
-watch(
-    form,
-    (new_form) => {
-        Object.keys(new_form).forEach((field) => {
-            if (form_errors.value[field]) {
-                delete doc_store.errors.errors[field];
-            }
-        });
-    },
-    { deep: true }
-);
+const { form_errors, clearFieldError } = clearFieldErrors(doc_store, form);
 
 async function submitDocument() {
     if (!form_valid.value) return;
@@ -141,8 +124,6 @@ async function submitDocument() {
 watch(
     () => route.params.id,
     async (id) => {
-        console.log("Changement de route détecté, is_edit:", is_edit.value);
-
         if (id) {
             await doc_store.getDocumentById(id);
             form.value = {

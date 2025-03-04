@@ -12,14 +12,6 @@ onMounted(async () => {
 });
 
 const recent_docs = computed(() => doc_store.documents.slice(0, 6));
-
-function navigateToDocuments() {
-    router.push("/documents");
-}
-
-function navigateToUpload() {
-    router.push("/document/add");
-}
 </script>
 
 <template>
@@ -38,7 +30,7 @@ function navigateToUpload() {
                             color="primary"
                             size="x-large"
                             block
-                            @click="navigateToDocuments"
+                            to="/documents"
                         >
                             <v-icon start>mdi-file-document-multiple</v-icon>
                             Parcourir les documents
@@ -50,7 +42,7 @@ function navigateToUpload() {
                             color="secondary"
                             size="x-large"
                             block
-                            @click="navigateToUpload"
+                            to="/document/add"
                         >
                             <v-icon start>mdi-upload</v-icon>
                             Téléverser un document

@@ -1,4 +1,5 @@
 import axios from "axios";
+import { computed, watch } from "vue";
 
 export function axiosError(error: any) {
     if (axios.isAxiosError(error) && error.response) {
@@ -50,3 +51,28 @@ export function downloadFile(
         a.remove()
     }, 200)
 }
+
+export function clearFieldErrors(store: any, form: any) {
+    const form_errors = computed(() => store.errors?.errors || {});
+
+    const clearFieldError = (field: string) => {
+        if (form_errors.value[field]) {
+            delete store.errors.errors[field];
+        }
+    };
+
+    watch(
+        form,
+        (new_form) => {
+            Object.keys(new_form).forEach((field) => {
+                if (form_errors.value[field]) {
+                    delete store.errors.errors[field];
+                }
+            });
+        },
+        { deep: true }
+    );
+
+    return { form_errors, clearFieldError };
+}
+

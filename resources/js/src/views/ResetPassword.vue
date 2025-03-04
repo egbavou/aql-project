@@ -3,6 +3,7 @@ import { computed, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/store/auth";
 import toast from "@/plugins/toast";
+import { clearFieldErrors } from "@/helpers";
 
 const router = useRouter();
 const auth_store = useAuthStore();
@@ -30,25 +31,7 @@ const confirm_pass_rules = [
         "Les mots de passe ne correspondent pas",
 ];
 
-const form_errors = computed(() => auth_store.errors?.errors || {});
-
-const clearFieldError = (field: string) => {
-    if (form_errors.value[field]) {
-        delete auth_store.errors.errors[field];
-    }
-};
-
-watch(
-    form,
-    (new_form) => {
-        Object.keys(new_form).forEach((field) => {
-            if (form_errors.value[field]) {
-                delete auth_store.errors.errors[field];
-            }
-        });
-    },
-    { deep: true }
-);
+const { form_errors, clearFieldError } = clearFieldErrors(auth_store, form);
 
 async function resetPassword() {
     if (!form_valid.value) return;

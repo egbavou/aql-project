@@ -10,6 +10,11 @@ export interface User {
 	token: string
 }
 
+export interface UserUpdate {
+	name: string
+	email: string
+}
+
 export interface LoginData {
 	email: string
 	password: string
@@ -125,7 +130,7 @@ export const useAuthStore = defineStore('auth', () => {
 
 		try {
 
-			var headers = {
+			let headers = {
 				"Accept": "application/json",
 				"Content-Type": "application/json",
 				"Authorization": `Bearer ${user.value?.token}`
@@ -143,6 +148,51 @@ export const useAuthStore = defineStore('auth', () => {
 
 			if (response.status == 204) {
 				user.value = null
+
+				return true
+			}
+
+		} catch (error) {
+			loading.value = false
+			errors.value = axiosError(error)
+
+			return false
+		}
+	}
+
+	async function udpateProfile(id: number, formdata: UserUpdate) {
+		loading.value = true
+		errors.value = null
+
+		try {
+			let headers = {
+				"Accept": "application/json",
+				"Content-Type": "application/json",
+				"Authorization": `Bearer ${user.value?.token}`
+			}
+			await axios.get(`${import.meta.env.VITE_API_URL}/sanctum/csrf-cookie`, {
+				headers: headers
+			});
+
+			const response = await axios.post(
+				`${import.meta.env.VITE_API_URL}/api/users/${id}`,
+				formdata,
+				{
+					headers: headers
+				}
+			);
+
+			loading.value = false;
+
+			const res_data = response.data;
+
+			if (res_data) {
+				user.value = {
+					id: res_data.id.toString(),
+					name: res_data.name,
+					email: res_data.email,
+					token: user.value?.token
+				}
 
 				return true
 			}
@@ -223,6 +273,7 @@ export const useAuthStore = defineStore('auth', () => {
 		login,
 		register,
 		logout,
+		udpateProfile,
 		forgotPassword,
 		resetPassword
 	}

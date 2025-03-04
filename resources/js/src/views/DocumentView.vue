@@ -2,7 +2,7 @@
 import { ref, computed, onMounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useDocumentStore } from "@/store/documents";
-import { formatDate, convertSize } from "@/helpers";
+import { formatDate, convertSize, clearFieldErrors } from "@/helpers";
 import { useAuthStore } from "@/store/auth";
 import toast from "@/plugins/toast";
 
@@ -19,25 +19,7 @@ const form = ref({
     email: "",
 });
 
-const form_errors = computed(() => doc_store.errors?.errors || {});
-
-const clearFieldError = (field: string) => {
-    if (form_errors.value[field]) {
-        delete doc_store.errors.errors[field];
-    }
-};
-
-watch(
-    form,
-    (new_form) => {
-        Object.keys(new_form).forEach((field) => {
-            if (form_errors.value[field]) {
-                delete doc_store.errors.errors[field];
-            }
-        });
-    },
-    { deep: true }
-);
+const { form_errors, clearFieldError } = clearFieldErrors(doc_store, form);
 
 const email_rules = [
     (value: string) => !!value || "L'email est requis",
