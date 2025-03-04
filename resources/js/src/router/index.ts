@@ -3,7 +3,7 @@ import { useAuthStore } from '@/store/auth'
 
 import Home from '@/views/Home.vue'
 import Documents from '@/views/Documents.vue'
-import Upload from '@/views/Upload.vue'
+import Upload from '@/views/DocumentForm.vue'
 import DocumentView from '@/views/DocumentView.vue'
 import Login from '@/views/Login.vue'
 import Register from '@/views/Register.vue'
@@ -13,6 +13,7 @@ import ResetPassword from '@/views/ResetPassword.vue'
 import DocumentsCreated from '@/views/DocumentsCreated.vue'
 import DocumentsShared from '@/views/DocumentsShared.vue'
 import DocumentEdit from '@/views/DocumentEdit.vue'
+import DocumentForm from '@/views/DocumentForm.vue'
 
 const routes = [
 	{
@@ -39,9 +40,9 @@ const routes = [
 		meta: { requiresAuth: true }
 	},
 	{
-		path: '/upload',
-		name: 'Upload',
-		component: Upload,
+		path: '/document/add',
+		name: 'DocumentAdd',
+		component: DocumentForm,
 		meta: { requiresAuth: true }
 	},
 	{
@@ -54,7 +55,7 @@ const routes = [
 	{
 		path: '/document/edit/:id',
 		name: 'DocumentEdit',
-		component: DocumentEdit,
+		component: DocumentForm,
 		props: true,
 		meta: { requiresAuth: true }
 	},

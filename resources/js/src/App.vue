@@ -66,7 +66,7 @@ async function logout() {
                             </v-list-item>
                         </v-list>
                     </v-menu>
-                    <v-btn to="/upload" variant="text">
+                    <v-btn to="/document/add" variant="text">
                         <v-icon start>mdi-upload</v-icon>
                         Téléverser
                     </v-btn>

@@ -18,7 +18,7 @@ function navigateToDocuments() {
 }
 
 function navigateToUpload() {
-    router.push("/upload");
+    router.push("/document/add");
 }
 </script>
 

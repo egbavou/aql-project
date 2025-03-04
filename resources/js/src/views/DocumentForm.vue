@@ -8,7 +8,8 @@ const route = useRoute();
 const router = useRouter();
 const doc_store = useDocumentStore();
 
-const doc_id = route.params.id;
+const doc_id = Number(route.params.id);
+const is_edit = computed(() => !!doc_id);
 
 const languages = ref([
     { code: "fr", name: "Français" },
@@ -37,7 +38,9 @@ const author_rule = [
 ];
 const pages_rule = [
     (value: number) => !!value || "Le nombre de pages est requis",
-    (value: number) => value > 0 || "Le nombre de page doit être supérieur à 0",
+    (value: number) =>
+        (!Number.isInteger(value) && value > 0) ||
+        "Le nombre de page doit être supérieur à 0",
 ];
 const language_rule = [
     (value: string) => !!value || "La langue du contenu est requis",
@@ -48,6 +51,7 @@ const visibility_rule = [
 
 const max_size = 20480 * 1024;
 const file_rule = [
+    (value: File | null) => !!value || "Le document est requis",
     (value: File | null) =>
         (value && value.type === "application/pdf") ||
         "Le fichier doit être au format PDF",
@@ -100,64 +104,74 @@ watch(
     { deep: true }
 );
 
-async function updateDocument(id: number) {
+async function submitDocument() {
     if (!form_valid.value) return;
 
-    const [success, title] = await doc_store.updateDocument(id, {
+    const payload = {
         title: form.value.title,
         author: form.value.author,
-        pages: Number.parseInt(form.value.pages),
+        pages: Number(form.value.pages),
         language: form.value.language,
         visibility: form.value.visibility,
         tags: form.value.tags,
         file: form.value.file,
-    });
+    };
+
+    const success = false;
+    let title = "";
+
+    if (is_edit.value) {
+        [success, title] = await doc_store.updateDocument(doc_id, payload);
+    } else {
+        [success, title] = await doc_store.addDocument(payload);
+    }
 
     if (doc_store.errors) {
-        if (
-            doc_store.errors.status == "419" ||
-            doc_store.errors.status == "401" ||
-            doc_store.errors.status == "none"
-        ) {
+        if (["419", "401", "none"].includes(doc_store.errors.status)) {
             toast(doc_store.errors.message, "error");
         }
     }
+
     if (success) {
-        toast(`Document: ${title} modifié.`, "success");
+        toast(
+            `Document: ${title} ${is_edit.value ? "modifié" : "publié"}.`,
+            "success"
+        );
+        router.push("/documents");
     }
 }
 
 onMounted(async () => {
-    await doc_store.getDocumentById(doc_id);
-    if (doc_store.document) {
-        form.value = {
-            title: doc_store.document.title,
-            author: doc_store.document.author,
-            pages: doc_store.document.pages,
-            language: doc_store.document.language,
-            visibility: doc_store.document.visibility,
-            tags: doc_store.document.tags?.map((tag) => tag.name) || [],
-            file: null,
-        };
+    if (is_edit.value) {
+        await doc_store.getDocumentById(doc_id);
+        if (doc_store.document) {
+            form.value = {
+                title: doc_store.document.title,
+                author: doc_store.document.author,
+                pages: doc_store.document.pages.toString(),
+                language: doc_store.document.language,
+                visibility: doc_store.document.visibility,
+                tags: doc_store.document.tags?.map((tag) => tag.name) || [],
+                file: null,
+            };
+        }
     }
 });
-
-const doc = computed(() => doc_store.document);
 </script>
 
 <template>
     <v-container>
         <v-row justify="center">
             <v-col cols="12" md="8">
-                <h1 class="text-h4 mb-6">Modification de {{ doc?.title }}</h1>
+                <h1 class="text-h4 mb-6">
+                    {{ is_edit ? "Modifier" : "Téléverser" }} un document
+                </h1>
 
                 <v-card>
                     <v-card-text>
                         <v-form
                             v-model="form_valid"
-                            @submit.prevent="
-                                updateDocument(Number.parseInt(doc?.id))
-                            "
+                            @submit.prevent="submitDocument"
                         >
                             <v-row>
                                 <v-col cols="12">
@@ -271,7 +285,9 @@ const doc = computed(() => doc_store.document);
                                     <v-file-input
                                         v-model="form.file"
                                         label="Document *"
+                                        :rules="file_rule"
                                         @change="onFileChange"
+                                        required
                                         variant="outlined"
                                         accept=".pdf"
                                         prepend-icon="mdi-file-upload"
@@ -342,10 +358,16 @@ const doc = computed(() => doc_store.document);
                                         color="primary"
                                         :loading="doc_store.loading"
                                         :disabled="!form_valid"
-                                        @click="updateDocument(doc?.id)"
+                                        @click="submitDocument"
                                     >
-                                        <v-icon start>mdi-cloud-upload</v-icon>
-                                        Modifier
+                                        <v-icon start>{{
+                                            is_edit
+                                                ? "mdi-content-save"
+                                                : "mdi-cloud-upload"
+                                        }}</v-icon>
+                                        {{
+                                            is_edit ? "Modifier" : "Téléverser"
+                                        }}
                                     </v-btn>
                                 </v-col>
                             </v-row>

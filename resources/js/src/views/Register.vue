@@ -73,11 +73,7 @@ async function register() {
 
     if (auth_store.errors) {
         console.log(auth_store.errors.errors);
-        if (
-            auth_store.errors.status == "419" ||
-            auth_store.errors.status == "401" ||
-            auth_store.errors.status == "none"
-        ) {
+        if (["419", "401", "none"].includes(auth_store.errors.status)) {
             toast(auth_store.errors.message, "error");
         }
     }

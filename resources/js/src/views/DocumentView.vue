@@ -50,11 +50,7 @@ async function shareDocument(id: number) {
     });
 
     if (doc_store.errors) {
-        if (
-            doc_store.errors.status == "419" ||
-            doc_store.errors.status == "401" ||
-            doc_store.errors.status == "none"
-        ) {
+        if (["419", "401", "none"].includes(doc_store.errors.status)) {
             toast(doc_store.errors.message, "error");
         }
     }
@@ -230,6 +226,10 @@ const doc = computed(() => doc_store.document);
                                                 color="primary"
                                                 class="mb-2"
                                                 :to="`/document/edit/${doc.id}`"
+                                                v-if="
+                                                    doc.user_id ==
+                                                    Number(auth_store.user?.id)
+                                                "
                                             >
                                                 <v-icon start
                                                     >mdi-pencil</v-icon
@@ -255,9 +255,7 @@ const doc = computed(() => doc_store.document);
                                             <v-menu
                                                 v-if="
                                                     doc.user_id ==
-                                                    Number.parseInt(
-                                                        auth_store.user?.id
-                                                    )
+                                                    Number(auth_store.user?.id)
                                                 "
                                             >
                                                 <template
@@ -304,9 +302,7 @@ const doc = computed(() => doc_store.document);
                                                 "
                                                 v-if="
                                                     doc.user_id ==
-                                                    Number.parseInt(
-                                                        auth_store.user?.id
-                                                    )
+                                                    Number(auth_store.user?.id)
                                                 "
                                             >
                                                 <v-icon start
