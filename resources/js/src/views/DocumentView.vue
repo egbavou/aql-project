@@ -13,6 +13,9 @@ const auth_store = useAuthStore();
 const doc_id: number = route.params.id;
 const show_delete_dialog = ref(false);
 const show_share_dialog = ref(false);
+const show_link_dialog = ref(false);
+const share_link = ref("");
+const copied = ref(false);
 
 const form_valid = ref(true);
 const form = ref({
@@ -50,6 +53,24 @@ async function deleteDocument(id: number) {
         toast("Document supprimé.", "success");
         router.push("/documents/created");
     }
+}
+
+async function generateDocLink(id: number) {
+    const token = await doc_store.generateDocLink(id);
+
+    if (token) {
+        share_link.value = `${
+            import.meta.env.VITE_API_URL
+        }/document/${token}/share`;
+        toast("Le lien a été généré.", "success");
+        show_link_dialog.value = true;
+    }
+}
+
+async function copyToClipboard() {
+    await navigator.clipboard.writeText(share_link.value);
+    copied.value = true;
+    setTimeout(() => (copied.value = false), 2000);
 }
 
 onMounted(async () => {
@@ -105,12 +126,17 @@ const doc = computed(() => doc_store.document);
                                             <v-btn
                                                 color="primary"
                                                 class="mt-4"
-                                                target="_blank"
+                                                :loading="doc_store.loading2"
+                                                @click="
+                                                    doc_store.downloadDocument(
+                                                        doc.id
+                                                    )
+                                                "
                                             >
                                                 <v-icon start
-                                                    >mdi-open-in-new</v-icon
+                                                    >mdi-download</v-icon
                                                 >
-                                                Ouvrir le document
+                                                Télécharger
                                             </v-btn>
                                         </div>
                                     </v-card>
@@ -265,12 +291,24 @@ const doc = computed(() => doc_store.document);
                                                         "
                                                     >
                                                         <v-list-item-title
-                                                            >Compte</v-list-item-title
+                                                            >A un
+                                                            compte</v-list-item-title
                                                         >
                                                     </v-list-item>
                                                     <v-list-item>
                                                         <v-list-item-title
-                                                            >Lien</v-list-item-title
+                                                            @click="
+                                                                generateDocLink(
+                                                                    Number(
+                                                                        doc.id
+                                                                    )
+                                                                )
+                                                            "
+                                                            :loading="
+                                                                doc_store.loading2
+                                                            "
+                                                            >Générer le
+                                                            lien</v-list-item-title
                                                         >
                                                     </v-list-item>
                                                 </v-list>
@@ -319,6 +357,35 @@ const doc = computed(() => doc_store.document);
                             :loading="doc_store.loading2"
                             @click="deleteDocument(doc.id)"
                             >Supprimer</v-btn
+                        >
+                    </v-card-actions>
+                </v-card>
+            </v-dialog>
+
+            <v-dialog v-model="show_link_dialog" max-width="500px">
+                <v-card>
+                    <v-card-title>Copier le lien de partage</v-card-title>
+                    <v-card-text>
+                        <v-text-field
+                            v-model="share_link"
+                            readonly
+                            variant="outlined"
+                            append-inner-icon="mdi-content-copy"
+                            @click:append-inner="copyToClipboard"
+                        ></v-text-field>
+                        <v-alert
+                            v-if="copied"
+                            type="success"
+                            variant="outlined"
+                            class="mt-2"
+                        >
+                            Lien de partage copié !
+                        </v-alert>
+                    </v-card-text>
+                    <v-card-actions>
+                        <v-spacer></v-spacer>
+                        <v-btn color="primary" @click="show_link_dialog = false"
+                            >Fermer</v-btn
                         >
                     </v-card-actions>
                 </v-card>

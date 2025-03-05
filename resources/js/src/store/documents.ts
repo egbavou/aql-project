@@ -299,6 +299,67 @@ export const useDocumentStore = defineStore('documents', () => {
         }
     }
 
+    async function generateDocLink(id: number) {
+        loading2.value = true
+        errors.value = null
+        try {
+            let headers = {
+                "Accept": "application/json",
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${authStore.user?.token}`
+            }
+            await axios.get(`${import.meta.env.VITE_API_URL}/sanctum/csrf-cookie`, {
+                headers: headers
+            });
+            const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/documents/${id}/link-share`, {}, {
+                headers: headers
+            });
+
+            loading2.value = false
+
+            if (response.data) {
+                return response.data.token;
+            }
+
+        } catch (error) {
+            loading2.value = false
+            errors.value = axiosError(error)
+
+            return false
+        }
+    }
+
+    async function getDocByToken(token: string) {
+        loading.value = true
+        errors.value = null
+        try {
+            let headers = {
+                "Accept": "application/json",
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${authStore.user?.token}`
+            }
+            await axios.get(`${import.meta.env.VITE_API_URL}/sanctum/csrf-cookie`, {
+                headers: headers
+            });
+            const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/documents/token/${token}`, {
+                headers: headers
+            });
+
+            loading.value = false
+
+            if (response.data) {
+                document.value = response.data;
+                return response.data
+            }
+
+        } catch (error) {
+            loading.value = false
+            errors.value = axiosError(error)
+
+            return false
+        }
+    }
+
     return {
         documents,
         document,
@@ -315,6 +376,8 @@ export const useDocumentStore = defineStore('documents', () => {
         deleteDocument,
         downloadDocument,
         shareDocument,
-        updateDocument
+        generateDocLink,
+        updateDocument,
+        getDocByToken
     }
 })
