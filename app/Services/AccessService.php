@@ -18,6 +18,7 @@ final class AccessService
             ->where('user_id', $request->user()->id)
             ->findOrFail($documentId);
         $document->update(['visibility' => DocumentVisibility::accountSharedFile]);
+        /** @var User $user */
         $user = User::where('email', $request->input('email'))
             ->first();
         $exists = Access::where('document_id', $document->id)

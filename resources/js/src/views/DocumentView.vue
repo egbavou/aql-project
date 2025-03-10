@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from "vue";
-import { useRoute, useRouter } from "vue-router";
-import { useDocumentStore } from "@/store/documents";
-import { formatDate, convertSize, clearFieldErrors } from "@/helpers";
-import { useAuthStore } from "@/store/auth";
+import {computed, onMounted, ref} from "vue";
+import {useRoute, useRouter} from "vue-router";
+import {useDocumentStore} from "@/store/documents";
+import {clearFieldErrors, convertSize, formatDate} from "@/helpers";
+import {useAuthStore} from "@/store/auth";
 import toast from "@/plugins/toast";
 
 const route = useRoute();

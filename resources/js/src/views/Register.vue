@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { useAuthStore } from "@/store/auth";
-import { computed, ref, watch } from "vue";
-import { useRouter } from "vue-router";
+import {useAuthStore} from "@/store/auth";
+import {ref} from "vue";
+import {useRouter} from "vue-router";
 import toast from "@/plugins/toast";
-import { clearFieldErrors } from "@/helpers";
+import {clearFieldErrors} from "@/helpers";
 
 const router = useRouter();
 const auth_store = useAuthStore();

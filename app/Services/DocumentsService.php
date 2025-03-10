@@ -21,6 +21,8 @@ use Throwable;
 
 final class DocumentsService
 {
+    private const PRIVATE_PATH = 'app/private/';
+
     public function list(DocumentFilterRequest $request): LengthAwarePaginator
     {
         $query = Document::with('tags')
@@ -62,9 +64,11 @@ final class DocumentsService
     public function download(int $id): BinaryFileResponse
     {
         $document = Document::findOrFail($id);
-        abort_if(!$this->hasAccess(Auth::guard('sanctum')->user(), $document), 403);
+        /** @var User $currentUser */
+        $currentUser = Auth::guard('sanctum')->user();
+        abort_if(!$this->hasAccess($currentUser, $document), 403);
         $document->update(['downloads' => $document->downloads + 1]);
-        return response()->download(storage_path('app/private/' . $document->path));
+        return response()->download(storage_path(self::PRIVATE_PATH . $document->path));
     }
 
     public function downloadByToken(string $token): BinaryFileResponse
@@ -73,7 +77,7 @@ final class DocumentsService
             ->where('visibility', DocumentVisibility::linkSharedFile)
             ->firstOrFail();
         $document->update(['downloads' => $document->downloads + 1]);
-        return response()->download(storage_path('app/private/' . $document->path), $document->title);
+        return response()->download(storage_path(self::PRIVATE_PATH . $document->path), $document->title);
     }
 
     /**
@@ -109,7 +113,7 @@ final class DocumentsService
             $document->fill($data);
 
             if ($request->hasFile('file')) {
-                File::delete(storage_path('app/private/' . $document->path));
+                File::delete(storage_path(self::PRIVATE_PATH . $document->path));
                 $document->path = $request->file('file')->store(Document::FOLDER);
                 $document->size = $request->file('file')->getSize();
             }
@@ -129,7 +133,7 @@ final class DocumentsService
     {
         $document = Document::where('user_id', $request->user()->id)
             ->findOrFail($id);
-        File::delete(storage_path('app/private/' . $document->path));
+        File::delete(storage_path(self::PRIVATE_PATH . $document->path));
         $document->delete();
     }
 

@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { clearFieldErrors } from "@/helpers";
+import {clearFieldErrors} from "@/helpers";
 import toast from "@/plugins/toast";
-import { useDocumentStore } from "@/store/documents";
-import { computed, onMounted, ref, watch } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import {useDocumentStore} from "@/store/documents";
+import {computed, ref, watch} from "vue";
+import {useRoute} from "vue-router";
 
 const route = useRoute();
-const router = useRouter();
 const doc_store = useDocumentStore();
 
 let doc_id = Number(route.params.id);

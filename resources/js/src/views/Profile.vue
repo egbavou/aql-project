@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
-import { useDocumentStore } from "../store/documents";
-import { useAuthStore } from "@/store/auth";
+import {computed, onMounted, ref} from "vue";
+import {useDocumentStore} from "../store/documents";
+import {useAuthStore} from "@/store/auth";
 import toast from "@/plugins/toast";
-import { useRouter } from "vue-router";
-import { formatDate, convertSize, clearFieldErrors } from "@/helpers";
+import {useRouter} from "vue-router";
+import {clearFieldErrors, convertSize, formatDate} from "@/helpers";
 
 const router = useRouter();
 const auth_store = useAuthStore();

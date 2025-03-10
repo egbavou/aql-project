@@ -7,6 +7,7 @@ use App\Services\UserService;
 use Illuminate\Http\Response;
 use Illuminate\Http\JsonResponse;
 use App\Http\Requests\UserUpdateRequest;
+use Throwable;
 
 class UserController extends Controller
 {

@@ -1,5 +1,5 @@
-import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosResponse, AxiosError } from "axios";
-import { useAuthStore } from "@/store/auth";
+import axios, {AxiosInstance, InternalAxiosRequestConfig} from "axios";
+import {useAuthStore} from "@/store/auth";
 
 const axiosUser: AxiosInstance = axios.create({
     baseURL: "http://127.0.0.1:8000",
