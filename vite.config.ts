@@ -1,12 +1,12 @@
-import {defineConfig} from 'vite';
-import {fileURLToPath} from 'node:url'
+import { defineConfig } from 'vite';
+import { fileURLToPath } from 'node:url'
 import laravel from 'laravel-vite-plugin';
 import vue from '@vitejs/plugin-vue';
 
 export default defineConfig({
-    server: {
+    /* server: {
         host: '0.0.0.0'
-    },
+    }, */
     plugins: [
         laravel({
             input: ['resources/css/app.css', 'resources/js/app.ts'],

@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import axios from 'axios'
 import { axiosError } from '@/helpers'
+import axiosUser from '@/axios'
 
 export interface User {
 	id: string
@@ -129,19 +130,9 @@ export const useAuthStore = defineStore('auth', () => {
 		loading.value = true;
 
 		try {
+			await axiosUser.get(`/sanctum/csrf-cookie`);
 
-			let headers = {
-				"Accept": "application/json",
-				"Content-Type": "application/json",
-				"Authorization": `Bearer ${user.value?.token}`
-			}
-			await axios.get(`${import.meta.env.VITE_API_URL}/sanctum/csrf-cookie`, {
-				headers: headers
-			});
-
-			const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/logout`, {}, {
-				headers: headers
-			});
+			const response = await axiosUser.post(`/api/auth/logout`, {});
 
 
 			loading.value = false;
@@ -165,21 +156,11 @@ export const useAuthStore = defineStore('auth', () => {
 		errors.value = null
 
 		try {
-			let headers = {
-				"Accept": "application/json",
-				"Content-Type": "application/json",
-				"Authorization": `Bearer ${user.value?.token}`
-			}
-			await axios.get(`${import.meta.env.VITE_API_URL}/sanctum/csrf-cookie`, {
-				headers: headers
-			});
+			await axiosUser.get(`/sanctum/csrf-cookie`);
 
-			const response = await axios.post(
-				`${import.meta.env.VITE_API_URL}/api/users/${id}`,
-				formdata,
-				{
-					headers: headers
-				}
+			const response = await axiosUser.post(
+				`/api/users/${id}`,
+				formdata
 			);
 
 			loading.value = false;
@@ -210,10 +191,10 @@ export const useAuthStore = defineStore('auth', () => {
 		errors.value = null
 
 		try {
-			await axios.get(`${import.meta.env.VITE_API_URL}/sanctum/csrf-cookie`);
+			await axiosUser.get(`/sanctum/csrf-cookie`);
 
-			const response = await axios.post(
-				`${import.meta.env.VITE_API_URL}/api/auth/forgot-password`,
+			const response = await axiosUser.post(
+				`/api/auth/forgot-password`,
 				formdata
 			);
 
@@ -235,10 +216,10 @@ export const useAuthStore = defineStore('auth', () => {
 		errors.value = null
 
 		try {
-			await axios.get(`${import.meta.env.VITE_API_URL}/sanctum/csrf-cookie`);
+			await axiosUser.get(`/sanctum/csrf-cookie`);
 
-			const response = await axios.post(
-				`${import.meta.env.VITE_API_URL}/api/auth/password-reset`,
+			const response = await axiosUser.post(
+				`/api/auth/password-reset`,
 				formdata
 			);
 

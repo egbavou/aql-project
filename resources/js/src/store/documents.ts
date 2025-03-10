@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import axios from 'axios';
-import { useAuthStore } from './auth';
+import axiosUser from '@/axios';
 import { axiosError, downloadFile } from '@/helpers';
 
 export interface DocumentData {
@@ -43,7 +42,6 @@ interface ShareDocumentData {
 export const useDocumentStore = defineStore('documents', () => {
     const loading = ref(false), loading2 = ref(false)
     const errors = ref<any>(null);
-    const authStore = useAuthStore();
     const documents = ref<Document[]>([]);
     const document = ref<Document>();
     const current_page = ref(1);
@@ -54,17 +52,10 @@ export const useDocumentStore = defineStore('documents', () => {
         loading.value = true
         errors.value = null
         try {
-            let headers = {
-                "Accept": "application/json",
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${authStore.user?.token}`
-            }
-            await axios.get(`${import.meta.env.VITE_API_URL}/sanctum/csrf-cookie`, {
-                headers: headers
-            });
+
+            await axiosUser.get(`/sanctum/csrf-cookie`);
             const per_page: number = 12;
-            const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/documents`, {
-                headers: headers,
+            const response = await axiosUser.get(`/api/documents`, {
                 params: {
                     page: page, per_page: per_page
                 }
@@ -91,18 +82,11 @@ export const useDocumentStore = defineStore('documents', () => {
         loading.value = true
         errors.value = null
         try {
-            let headers = {
-                "Accept": "application/json",
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${authStore.user?.token}`
-            }
-            await axios.get(`${import.meta.env.VITE_API_URL}/sanctum/csrf-cookie`, {
-                headers: headers
-            });
+
+            await axiosUser.get(`/sanctum/csrf-cookie`);
             const per_page: number = 12;
             const page: number = current_page.value
-            const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/documents/${cat}`, {
-                headers: headers,
+            const response = await axiosUser.get(`/api/documents/${cat}`, {
                 params: {
                     page: page, per_page: per_page
                 }
@@ -130,17 +114,12 @@ export const useDocumentStore = defineStore('documents', () => {
         errors.value = null
         try {
             let headers = {
-                "Accept": "application/json",
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${authStore.user?.token}`
+                "Content-Type": "multipart/form-data"
             }
-            await axios.get(`${import.meta.env.VITE_API_URL}/sanctum/csrf-cookie`, {
-                headers: headers
-            });
 
-            headers["Content-Type"] = "multipart/form-data"
+            await axiosUser.get(`/sanctum/csrf-cookie`);
 
-            const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/documents`, formdata, {
+            const response = await axiosUser.post(`/api/documents`, formdata, {
                 headers: headers
             });
 
@@ -152,7 +131,7 @@ export const useDocumentStore = defineStore('documents', () => {
             loading.value = false
             errors.value = axiosError(error)
 
-            return false
+            return [false, "erreur"]
         }
     }
 
@@ -161,17 +140,11 @@ export const useDocumentStore = defineStore('documents', () => {
         errors.value = null
         try {
             let headers = {
-                "Accept": "application/json",
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${authStore.user?.token}`
+                "Content-Type": "multipart/form-data",
             }
-            await axios.get(`${import.meta.env.VITE_API_URL}/sanctum/csrf-cookie`, {
-                headers: headers
-            });
+            await axiosUser.get(`/sanctum/csrf-cookie`);
 
-            headers["Content-Type"] = "multipart/form-data"
-
-            const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/documents/${id}`, formdata, {
+            const response = await axiosUser.post(`/api/documents/${id}`, formdata, {
                 headers: headers
             });
 
@@ -183,7 +156,7 @@ export const useDocumentStore = defineStore('documents', () => {
             loading.value = false
             errors.value = axiosError(error)
 
-            return false
+            return [false, "erreur"]
         }
     }
 
@@ -191,17 +164,9 @@ export const useDocumentStore = defineStore('documents', () => {
         loading.value = true
         errors.value = null
         try {
-            let headers = {
-                "Accept": "application/json",
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${authStore.user?.token}`
-            }
-            await axios.get(`${import.meta.env.VITE_API_URL}/sanctum/csrf-cookie`, {
-                headers: headers
-            });
-            const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/documents/${id}`, {
-                headers: headers
-            });
+
+            await axiosUser.get(`/sanctum/csrf-cookie`);
+            const response = await axiosUser.get(`/api/documents/${id}`);
 
             loading.value = false
 
@@ -220,17 +185,9 @@ export const useDocumentStore = defineStore('documents', () => {
         loading2.value = true
         errors.value = null
         try {
-            let headers = {
-                "Accept": "application/json",
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${authStore.user?.token}`
-            }
-            await axios.get(`${import.meta.env.VITE_API_URL}/sanctum/csrf-cookie`, {
-                headers: headers
-            });
-            const response = await axios.delete(`${import.meta.env.VITE_API_URL}/api/documents/${id}`, {
-                headers: headers
-            });
+
+            await axiosUser.get(`${import.meta.env.VITE_API_URL}/sanctum/csrf-cookie`);
+            const response = await axiosUser.delete(`/api/documents/${id}`);
 
             loading2.value = false
 
@@ -249,17 +206,10 @@ export const useDocumentStore = defineStore('documents', () => {
         loading2.value = true
         errors.value = null
         try {
-            let headers = {
-                "Accept": "application/json",
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${authStore.user?.token}`
-            }
-            await axios.get(`${import.meta.env.VITE_API_URL}/sanctum/csrf-cookie`, {
-                headers: headers
-            });
-            const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/documents/download/${id}`, {
-                responseType: "blob",
-                headers: headers
+
+            await axiosUser.get(`/sanctum/csrf-cookie`);
+            const response = await axiosUser.get(`/api/documents/download/${id}`, {
+                responseType: "blob"
             });
 
             loading2.value = false
@@ -275,17 +225,9 @@ export const useDocumentStore = defineStore('documents', () => {
         loading2.value = true
         errors.value = null
         try {
-            let headers = {
-                "Accept": "application/json",
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${authStore.user?.token}`
-            }
-            await axios.get(`${import.meta.env.VITE_API_URL}/sanctum/csrf-cookie`, {
-                headers: headers
-            });
-            const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/documents/${id}/private-share`, formdata, {
-                headers: headers
-            });
+
+            await axiosUser.get(`/sanctum/csrf-cookie`);
+            await axiosUser.post(`/api/documents/${id}/private-share`, formdata);
 
             loading2.value = false
 
@@ -303,17 +245,9 @@ export const useDocumentStore = defineStore('documents', () => {
         loading2.value = true
         errors.value = null
         try {
-            let headers = {
-                "Accept": "application/json",
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${authStore.user?.token}`
-            }
-            await axios.get(`${import.meta.env.VITE_API_URL}/sanctum/csrf-cookie`, {
-                headers: headers
-            });
-            const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/documents/${id}/link-share`, {}, {
-                headers: headers
-            });
+
+            await axiosUser.get(`/sanctum/csrf-cookie`);
+            const response = await axiosUser.post(`/api/documents/${id}/link-share`, {});
 
             loading2.value = false
 
@@ -333,17 +267,9 @@ export const useDocumentStore = defineStore('documents', () => {
         loading.value = true
         errors.value = null
         try {
-            let headers = {
-                "Accept": "application/json",
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${authStore.user?.token}`
-            }
-            await axios.get(`${import.meta.env.VITE_API_URL}/sanctum/csrf-cookie`, {
-                headers: headers
-            });
-            const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/documents/token/${token}`, {
-                headers: headers
-            });
+
+            await axiosUser.get(`/sanctum/csrf-cookie`);
+            const response = await axiosUser.get(`/api/documents/token/${token}`);
 
             loading.value = false
 

@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import {clearFieldErrors} from "@/helpers";
+import { clearFieldErrors } from "@/helpers";
 import toast from "@/plugins/toast";
-import {useDocumentStore} from "@/store/documents";
-import {computed, ref, watch} from "vue";
-import {useRoute} from "vue-router";
+import { useDocumentStore } from "@/store/documents";
+import { computed, ref, watch } from "vue";
+import { useRoute } from "vue-router";
 
 const route = useRoute();
 const doc_store = useDocumentStore();
@@ -106,10 +106,11 @@ async function submitDocument() {
         [success, title] = await doc_store.addDocument(payload);
     }
 
-    if (doc_store.errors) {
+    if (!success) {
         if (["419", "401", "none"].includes(doc_store.errors.status)) {
             toast(doc_store.errors.message, "error");
         }
+        console.log("ok");
     }
 
     if (success) {

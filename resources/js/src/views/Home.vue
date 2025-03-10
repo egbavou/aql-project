@@ -131,6 +131,16 @@ const recent_docs = computed(() => doc_store.documents.slice(0, 6));
                         size="64"
                     ></v-progress-circular>
                 </v-row>
+                <v-row
+                    v-if="!doc_store.loading && recent_docs.length == 0"
+                    class="mt-4"
+                >
+                    <v-col cols="12" class="text-center">
+                        <v-alert type="info">
+                            Aucun document ou connectez-vous pour en disposer.
+                        </v-alert>
+                    </v-col>
+                </v-row>
             </v-col>
         </v-row>
 
