@@ -6,6 +6,7 @@ use Tests\TestCase;
 use App\Models\User;
 use App\Enum\Language;
 use App\Models\Document;
+use Illuminate\Support\Str;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -85,7 +86,7 @@ class DocumentControllerTest extends TestCase
         $response->assertStatus(200)->assertJsonFragment(['title' => 'Test Document']);
     }
 
-    public function test_update_modifies_a_document()
+    public function test_update_a_document()
     {
         $document = Document::factory()->create(['user_id' => $this->user->id]);
         $data = $document->toArray();
@@ -96,7 +97,7 @@ class DocumentControllerTest extends TestCase
         $response->assertStatus(200)->assertJsonFragment(['title' => 'Updated Title']);
     }
 
-    public function test_delete_removes_a_document()
+    public function test_delete_a_document()
     {
         $document = Document::factory()->create(['user_id' => $this->user->id]);
 
@@ -117,11 +118,11 @@ class DocumentControllerTest extends TestCase
 
     public function test_show_by_token_returns_a_document()
     {
-        $document = Document::factory()->create(['token' => 'test-token', 'visibility' => 'link_shared']);
+        $document = Document::factory()->create(['token' => Str::uuid()->toString(), 'visibility' => 'link_shared']);
 
         $response = $this->getJson("/api/documents/token/{$document->token}");
 
-        $response->assertStatus(200)->assertJsonFragment(['token' => 'test-token']);
+        $response->assertStatus(200)->assertJsonFragment(['token' => $document->token]);
     }
     
     public function test_download_document_by_id()

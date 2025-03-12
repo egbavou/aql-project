@@ -4,12 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
  * @mixin IdeHelperAccess
  */
 class Access extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'user_id',
         'document_id'
