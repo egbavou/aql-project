@@ -32,15 +32,15 @@ class DocumentControllerTest extends TestCase
 
         $this->assertInstanceOf(User::class, $this->user); // Vérification
         $this->actingAs($this->user);
-        
+
     }
 
     public function test_index_returns_documents()
-    { 
+    {
         Document::factory()->count(3)->create(['visibility' => 'public']);
-        
+
         $response = $this->getJson('/api/documents');
-        
+
         $response->assertStatus(200)->assertJsonCount(3, 'data');
     }
 
@@ -116,6 +116,26 @@ class DocumentControllerTest extends TestCase
         $response->assertStatus(200)->assertJsonFragment(['id' => $document->id]);
     }
 
+    public function test_show_private_document_while_having_access()
+    {
+        $document = Document::factory()->create(['user_id' => $this->user->id, 'visibility' => 'private']);
+
+        $response = $this->getJson("/api/documents/{$document->id}");
+
+        $response->assertStatus(200)->assertJsonFragment(['id' => $document->id]);
+    }
+
+    public function test_show_private_document_with_no_access_returns_404()
+    {
+        $user = User::factory()->create();
+
+        $document = Document::factory()->create(['user_id' => $user->id, 'visibility' => 'private']);
+
+        $response = $this->getJson("/api/documents/{$document->id}");
+
+        $response->assertForbidden();
+    }
+
     public function test_show_by_token_returns_a_document()
     {
         $document = Document::factory()->create(['token' => Str::uuid()->toString(), 'visibility' => 'link_shared']);
@@ -124,7 +144,7 @@ class DocumentControllerTest extends TestCase
 
         $response->assertStatus(200)->assertJsonFragment(['token' => $document->token]);
     }
-    
+
     public function test_download_document_by_id()
     {
         $document = Document::factory()->create([

@@ -7,18 +7,13 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Requests\UserUpdateRequest;
 use Illuminate\Database\Eloquent\Collection;
+use Throwable;
 
 final class UserService
 {
-    public function list(): Collection
-    {
-        return User::all();
-    }
-
     public function show(Request $request): User
     {
-        $user = $request->user();
-        return $user;
+        return $request->user();
     }
 
     /**
