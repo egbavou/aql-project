@@ -188,7 +188,7 @@ const doc = computed(() => doc_store.document);
                                                     </template>
                                                     <v-list-item-title
                                                         >Nombre de
-                                                        téléchargement</v-list-item-title
+                                                        téléchargements</v-list-item-title
                                                     >
                                                     <v-list-item-subtitle>{{
                                                         doc.downloads

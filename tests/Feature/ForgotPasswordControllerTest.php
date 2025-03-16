@@ -4,11 +4,14 @@ namespace Tests\Feature;
 
 use App\Mail\ForgotPasswordMail;
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class ForgotPasswordControllerTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_code_generated_and_mail_sent_successfully(): void
     {
         $user = User::factory()->create();

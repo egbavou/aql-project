@@ -6,7 +6,6 @@ import {axiosError, downloadFile} from '@/helpers';
 export interface DocumentData {
     title: string;
     author: string;
-    pages: number;
     language: string;
     visibility: string;
     tags: string[];

@@ -16,6 +16,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Smalot\PdfParser\Parser;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Throwable;
 
@@ -85,14 +86,18 @@ final class DocumentsService
      */
     public function create(DocumentCreateRequest $request): Document
     {
-        return DB::transaction(function () use ($request) {
-            $filePath = $request->file('file')
-                ->store(Document::FOLDER);
-            $data = $request->safe()->except(['file', 'tags']);
-            $data['path'] = $filePath;
-            $data['size'] = $request->file('file')->getSize();
-            $data['user_id'] = $request->user()->id;
-            $tags = $request->input('tags', []);
+        $filePath = $request->file('file')
+            ->store(Document::FOLDER);
+        $data = $request->safe()->except(['file', 'tags']);
+        $parser = new Parser();
+        $pdf = $parser->parseFile(storage_path(self::PRIVATE_PATH . $filePath));
+        $data['path'] = $filePath;
+        $data['pages'] = count($pdf->getPages());
+        $data['size'] = $request->file('file')->getSize();
+        $data['user_id'] = $request->user()->id;
+        $tags = $request->input('tags', []);
+
+        return DB::transaction(function () use ($data, $tags) {
             $tagIds = collect($tags)->map(fn($tagName) => Tag::firstOrCreate(['name' => $tagName])->id);
             $document = Document::create($data);
             $document->tags()->sync($tagIds);
@@ -106,23 +111,32 @@ final class DocumentsService
      */
     public function update(int $id, DocumentUpdateRequest $request): Document
     {
-        return DB::transaction(function () use ($id, $request) {
-            $document = Document::where('user_id', $request->user()->id)
-                ->findOrFail($id);
-            $data = $request->safe()->except(['file', 'tags']);
+        $document = Document::where('user_id', $request->user()->id)
+            ->findOrFail($id);
+
+        if ($request->hasFile('file')) {
+            File::delete(storage_path(self::PRIVATE_PATH . $document->path));
+            $file = $request->file('file');
+            $filePath = $file->store(Document::FOLDER);
+            $fileSize = $file->getSize();
+            $parser = new Parser();
+            $pdf = $parser->parseFile(storage_path(self::PRIVATE_PATH . $filePath));
+            $pages = count($pdf->getPages());
+        } else {
+            $pages = $document->pages;
+            $filePath = $document->path;
+            $fileSize = $document->size;
+        }
+
+        $tags = $request->input('tags', []);
+        $data = $request->safe()->except(['file', 'tags']);
+        return DB::transaction(function () use ($pages, $document, $data, $filePath, $fileSize, $tags) {
+            $tagIds = collect($tags)->map(fn($tagName) => Tag::firstOrCreate(['name' => $tagName])->id);
             $document->fill($data);
-
-            if ($request->hasFile('file')) {
-                File::delete(storage_path(self::PRIVATE_PATH . $document->path));
-                $document->path = $request->file('file')->store(Document::FOLDER);
-                $document->size = $request->file('file')->getSize();
-            }
-
+            $document->path = $filePath;
+            $document->size = $fileSize;
+            $document->pages = $pages;
             $document->save();
-            $tags = $request->input('tags', []);
-            $tagIds = collect($tags)->map(function ($tagName) {
-                return Tag::firstOrCreate(['name' => $tagName])->id;
-            });
             $document->tags()->sync($tagIds);
             $document->load('tags');
             return $document;

@@ -25,7 +25,6 @@ class DocumentUpdateRequest extends FormRequest
         return [
             'author'     => 'string|required',
             'title'      => 'string|required',
-            'pages'      => 'integer|min:0|required',
             'language'   => 'required|in:' . implode(',', Language::values()),
             'visibility' => 'required|in:public,private',
             'file'       => 'file|mimetypes:application/pdf|max:20480|nullable',

@@ -25,7 +25,6 @@ const visibilities = ref([
 const form = ref<{
     title: string;
     author: string;
-    pages: number;
     language: string;
     visibility: string;
     tags: string[];
@@ -33,7 +32,6 @@ const form = ref<{
 }>({
     title: "",
     author: "",
-    pages: 0,
     language: "",
     visibility: "",
     tags: [],
@@ -44,10 +42,6 @@ const form = ref<{
 const title_rule = [(value: string) => !!value || "Le titre est requis"];
 const author_rule = [
     (value: string) => !!value || "Le nom de l'auteur est requis",
-];
-const pages_rule = [
-    (value: number) => !!value || "Le nombre de pages est requis",
-    (value: number) => value > 0 || "Le nombre de page doit être supérieur à 0",
 ];
 const language_rule = [
     (value: string) => !!value || "La langue du contenu est requis",
@@ -99,7 +93,6 @@ async function submitDocument() {
     let payload = {
         title: form.value.title,
         author: form.value.author,
-        pages: Number(form.value.pages),
         language: form.value.language,
         visibility: form.value.visibility,
         tags: form.value.tags,
@@ -137,7 +130,6 @@ watch(
             form.value = {
                 title: doc_store.document?.title || "",
                 author: doc_store.document?.author || "",
-                pages: doc_store.document?.pages || 0,
                 language: doc_store.document?.language || "",
                 visibility: doc_store.document?.visibility || "",
                 tags: doc_store.document?.tags?.map((tag) => tag.name) || [],
@@ -147,7 +139,6 @@ watch(
             form.value = {
                 title: "",
                 author: "",
-                pages: 0,
                 language: "",
                 visibility: "",
                 tags: [],
@@ -197,7 +188,7 @@ watch(
                                     ></v-text-field>
                                 </v-col>
 
-                                <v-col cols="12" md="6">
+                                <v-col cols="12">
                                     <v-text-field
                                         v-model="form.author"
                                         label="Auteur *"
@@ -215,26 +206,6 @@ watch(
                                         :class="
                                             form_errors.author ? 'mb-3' : ''
                                         "
-                                    ></v-text-field>
-                                </v-col>
-
-                                <v-col cols="12" md="6">
-                                    <v-text-field
-                                        v-model="form.pages"
-                                        label="Nombre de pages *"
-                                        type="number"
-                                        :rules="pages_rule"
-                                        required
-                                        variant="outlined"
-                                        :error-messages="
-                                            form_errors.pages
-                                                ? form_errors.pages[0]
-                                                : ''
-                                        "
-                                        @update:modelValue="
-                                            clearFieldError('pages')
-                                        "
-                                        :class="form_errors.pages ? 'mb-3' : ''"
                                     ></v-text-field>
                                 </v-col>
 
