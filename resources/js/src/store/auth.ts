@@ -172,7 +172,7 @@ export const useAuthStore = defineStore('auth', () => {
 					id: res_data.id.toString(),
 					name: res_data.name,
 					email: res_data.email,
-					token: user.value?.token
+					token: user.value?.token ?? ""
 				}
 
 				return true

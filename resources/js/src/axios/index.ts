@@ -1,18 +1,18 @@
-import axios, { AxiosError, AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from "axios";
-import { useAuthStore } from "@/store/auth";
+import axios, {AxiosError, AxiosInstance, AxiosResponse, InternalAxiosRequestConfig} from "axios";
+import {useAuthStore} from "@/store/auth";
 
 const axiosUser: AxiosInstance = axios.create({
     baseURL: `${import.meta.env.VITE_API_URL}`,
 });
 
 axiosUser.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-    const authStore = useAuthStore()
-
+    const authStore = useAuthStore();
     config.headers.Accept = "application/json";
-    config.headers["Content-Type"] = "application/json";
+    if (!config.headers["Content-Type"]) {
+        config.headers["Content-Type"] = "application/json";
+    }
 
     config.headers.Authorization = `Bearer ${authStore.user?.token}`;
-
     return config;
 });
 
@@ -28,6 +28,7 @@ axiosUser.interceptors.response.use(
             }
             localStorage.setItem("one_redirect", "true")
         }
+
         return Promise.reject(error);
     }
 );

@@ -1,7 +1,7 @@
-import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import {defineStore} from 'pinia'
+import {ref} from 'vue'
 import axiosUser from '@/axios';
-import { axiosError, downloadFile } from '@/helpers';
+import {axiosError, downloadFile} from '@/helpers';
 
 export interface DocumentData {
     title: string;
@@ -100,7 +100,6 @@ export const useDocumentStore = defineStore('documents', () => {
             total.value = response.data.total
 
             return response.data.data
-            // console.log(response)
         } catch (error) {
             loading.value = false
             errors.value = axiosError(error)
@@ -109,7 +108,7 @@ export const useDocumentStore = defineStore('documents', () => {
         }
     }
 
-    async function addDocument(formdata: DocumentData) {
+    async function addDocument(formdata: DocumentData): Promise<[boolean, string]> {
         loading.value = true
         errors.value = null
         try {
@@ -133,9 +132,11 @@ export const useDocumentStore = defineStore('documents', () => {
 
             return [false, "erreur"]
         }
+
+        return [false, "erreur"];
     }
 
-    async function updateDocument(id: number, formdata: DocumentData) {
+    async function updateDocument(id: number, formdata: DocumentData): Promise<[boolean, string]> {
         loading.value = true
         errors.value = null
         try {
@@ -158,6 +159,8 @@ export const useDocumentStore = defineStore('documents', () => {
 
             return [false, "erreur"]
         }
+
+        return [false, "erreur"]
     }
 
     async function getDocumentById(id: number) {
@@ -214,7 +217,7 @@ export const useDocumentStore = defineStore('documents', () => {
 
             loading2.value = false
 
-            return downloadFile(document.value?.title, response.data, "application/pdf");
+            return downloadFile(document.value!.title, response.data, "application/pdf");
         } catch (error) {
             loading2.value = false
             errors.value = axiosError(error)
@@ -285,6 +288,7 @@ export const useDocumentStore = defineStore('documents', () => {
             return false
         }
     }
+
 
     return {
         documents,

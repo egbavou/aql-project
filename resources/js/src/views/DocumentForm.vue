@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { clearFieldErrors } from "@/helpers";
+import {clearFieldErrors} from "@/helpers";
 import toast from "@/plugins/toast";
-import { useDocumentStore } from "@/store/documents";
-import { computed, ref, watch } from "vue";
-import { useRoute } from "vue-router";
+import {useDocumentStore} from "@/store/documents";
+import {computed, ref, watch} from "vue";
+import {useRoute} from "vue-router";
 
 const route = useRoute();
 const doc_store = useDocumentStore();
@@ -12,25 +12,34 @@ let doc_id = Number(route.params.id);
 const is_edit = computed(() => !!doc_id);
 
 const languages = ref([
-    { code: "fr", name: "Français" },
-    { code: "en", name: "Anglais" },
-    { code: "es", name: "Espagnol" },
+    {code: "fr", name: "Français"},
+    {code: "en", name: "Anglais"},
+    {code: "es", name: "Espagnol"},
 ]);
 
 const visibilities = ref([
-    { code: "public", name: "Publique" },
-    { code: "private", name: "Privé" },
+    {code: "public", name: "Publique"},
+    {code: "private", name: "Privé"},
 ]);
 
-const form = ref({
+const form = ref<{
+    title: string;
+    author: string;
+    pages: number;
+    language: string;
+    visibility: string;
+    tags: string[];
+    file: File | null;
+}>({
     title: "",
     author: "",
     pages: 0,
     language: "",
     visibility: "",
     tags: [],
-    file: null,
+    file: null
 });
+
 
 const title_rule = [(value: string) => !!value || "Le titre est requis"];
 const author_rule = [
@@ -82,7 +91,7 @@ function onFileChange(event: Event) {
     }
 }
 
-const { form_errors, clearFieldError } = clearFieldErrors(doc_store, form);
+const {form_errors, clearFieldError} = clearFieldErrors(doc_store, form);
 
 async function submitDocument() {
     if (!form_valid.value) return;
@@ -97,8 +106,8 @@ async function submitDocument() {
         file: form.value.file,
     };
 
-    let success = false;
-    let title = "";
+    let success: boolean;
+    let title: string;
 
     if (is_edit.value) {
         [success, title] = await doc_store.updateDocument(doc_id, payload);
@@ -110,7 +119,6 @@ async function submitDocument() {
         if (["419", "401", "none"].includes(doc_store.errors.status)) {
             toast(doc_store.errors.message, "error");
         }
-        console.log("ok");
     }
 
     if (success) {
@@ -125,7 +133,7 @@ watch(
     () => route.params.id,
     async (id) => {
         if (id) {
-            await doc_store.getDocumentById(id);
+            await doc_store.getDocumentById(Number(id));
             form.value = {
                 title: doc_store.document?.title || "",
                 author: doc_store.document?.author || "",
@@ -147,7 +155,7 @@ watch(
             };
         }
     },
-    { immediate: true }
+    {immediate: true}
 );
 </script>
 
@@ -302,11 +310,15 @@ watch(
                                 </v-col>
 
                                 <v-col cols="12">
-                                    <label class="text-subtitle-1 mb-2 d-block"
-                                        >Tags</label
+                                    <label
+                                        class="text-subtitle-1 mb-2 d-block"
+                                        for="tag-input"
                                     >
+                                        Tags
+                                    </label>
                                     <div class="d-flex align-center mb-2">
                                         <v-text-field
+                                            id="tag-input"
                                             v-model="tag_input"
                                             label="Ajouter un tag"
                                             variant="outlined"
@@ -358,10 +370,11 @@ watch(
                                         @click="submitDocument"
                                     >
                                         <v-icon start>{{
-                                            route.params.id
-                                                ? "mdi-content-save"
-                                                : "mdi-cloud-upload"
-                                        }}</v-icon>
+                                                route.params.id
+                                                    ? "mdi-content-save"
+                                                    : "mdi-cloud-upload"
+                                            }}
+                                        </v-icon>
                                         {{
                                             route.params.id
                                                 ? "Modifier"

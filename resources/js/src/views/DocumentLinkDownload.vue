@@ -13,7 +13,6 @@ onMounted(async () => {
 });
 
 const doc = computed(() => doc_store.document);
-console.log(doc);
 </script>
 
 <template>

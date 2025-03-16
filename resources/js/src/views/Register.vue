@@ -55,7 +55,6 @@ async function register() {
     });
 
     if (auth_store.errors) {
-        console.log(auth_store.errors.errors);
         if (["419", "401", "none"].includes(auth_store.errors.status)) {
             toast(auth_store.errors.message, "error");
         }
