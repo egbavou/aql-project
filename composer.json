@@ -13,6 +13,7 @@
         "laravel/framework": "12.1.1",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
+        "sentry/sentry-laravel": "^4.13",
         "smalot/pdfparser": "^2.11"
     },
     "require-dev": {

@@ -6,6 +6,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Sentry\Laravel\Integration;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -14,12 +15,13 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
-    ->withMiddleware(function (Middleware $middleware) {
+    ->withMiddleware(function (Middleware $_) {
         //
     })
     ->withExceptions(function (Exceptions $exceptions) {
+        Integration::handles($exceptions);
 
-        $exceptions->render(function (NotFoundHttpException $e, Request $request) {
+        $exceptions->render(function (NotFoundHttpException $_, Request $request) {
             if ($request->is('api/*')) {
                 return response()->json([
                     'message' => 'Route not found.'
@@ -27,12 +29,12 @@ return Application::configure(basePath: dirname(__DIR__))
             }
         });
 
-        $exceptions->render(function (ModelNotFoundException $e, Request $request) {
+        $exceptions->render(function (ModelNotFoundException $_, Request $request) {
             if ($request->is('api/*')) {
                 return response()->json([
                     'message' => 'Resource not found.'
                 ], 404);
             }
         });
-        
+
     })->create();
