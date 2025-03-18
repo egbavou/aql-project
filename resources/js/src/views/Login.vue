@@ -28,7 +28,7 @@ async function login() {
     });
 
     if (auth_store.errors) {
-        if (["419", "401", "none"].includes(auth_store.errors.status)) {
+        if (["419", "401", "500", "none"].includes(auth_store.errors.status)) {
             toast(auth_store.errors.message, "error");
         }
     }

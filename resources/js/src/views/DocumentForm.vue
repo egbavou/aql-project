@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import {clearFieldErrors} from "@/helpers";
+import { clearFieldErrors } from "@/helpers";
 import toast from "@/plugins/toast";
-import {useDocumentStore} from "@/store/documents";
-import {computed, ref, watch} from "vue";
-import {useRoute} from "vue-router";
+import { useDocumentStore } from "@/store/documents";
+import { computed, ref, watch } from "vue";
+import { useRoute } from "vue-router";
 
 const route = useRoute();
 const doc_store = useDocumentStore();
@@ -12,14 +12,14 @@ let doc_id = Number(route.params.id);
 const is_edit = computed(() => !!doc_id);
 
 const languages = ref([
-    {code: "fr", name: "Français"},
-    {code: "en", name: "Anglais"},
-    {code: "es", name: "Espagnol"},
+    { code: "fr", name: "Français" },
+    { code: "en", name: "Anglais" },
+    { code: "es", name: "Espagnol" },
 ]);
 
 const visibilities = ref([
-    {code: "public", name: "Publique"},
-    {code: "private", name: "Privé"},
+    { code: "public", name: "Publique" },
+    { code: "private", name: "Privé" },
 ]);
 
 const form = ref<{
@@ -35,9 +35,8 @@ const form = ref<{
     language: "",
     visibility: "",
     tags: [],
-    file: null
+    file: null,
 });
-
 
 const title_rule = [(value: string) => !!value || "Le titre est requis"];
 const author_rule = [
@@ -85,7 +84,7 @@ function onFileChange(event: Event) {
     }
 }
 
-const {form_errors, clearFieldError} = clearFieldErrors(doc_store, form);
+const { form_errors, clearFieldError } = clearFieldErrors(doc_store, form);
 
 async function submitDocument() {
     if (!form_valid.value) return;
@@ -109,7 +108,7 @@ async function submitDocument() {
     }
 
     if (!success) {
-        if (["419", "401", "none"].includes(doc_store.errors.status)) {
+        if (["419", "401", "500", "none"].includes(doc_store.errors.status)) {
             toast(doc_store.errors.message, "error");
         }
     }
@@ -146,7 +145,7 @@ watch(
             };
         }
     },
-    {immediate: true}
+    { immediate: true }
 );
 </script>
 
@@ -340,7 +339,8 @@ watch(
                                         :disabled="!form_valid"
                                         @click="submitDocument"
                                     >
-                                        <v-icon start>{{
+                                        <v-icon start
+                                            >{{
                                                 route.params.id
                                                     ? "mdi-content-save"
                                                     : "mdi-cloud-upload"

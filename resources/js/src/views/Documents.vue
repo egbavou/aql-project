@@ -1,131 +1,142 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { useDocumentStore } from "@/store/documents";
-import { convertSize, formatDate } from "@/helpers";
+import DocumentCard from "@/components/DocumentCard.vue";
 
 const doc_store = useDocumentStore();
-const search_query = ref("");
-const selected_tags = ref<string[]>([]);
 
-const all_tags = ["a", "b", "c"];
+const search_query_title = ref("");
+const search_query_author = ref("");
+const selected_languages = ref<string | null>(null);
+const selected_tag = ref<number>();
+
+const all_languages = ref([
+    { code: "fr", name: "Français" },
+    { code: "en", name: "Anglais" },
+    { code: "es", name: "Espagnol" },
+]);
 
 function onPageChange() {
     doc_store.getDocuments();
 }
 
+async function fetchDocuments() {
+    await doc_store.getDocuments(doc_store.current_page, {
+        title: search_query_title.value,
+        author: search_query_author.value,
+        language: selected_languages.value,
+        tag: selected_tag.value,
+    });
+}
+
+watch(
+    [search_query_title, search_query_author, selected_languages, selected_tag],
+    fetchDocuments
+);
+
 onMounted(async () => {
-    await doc_store.getDocuments();
+    await doc_store.getDocumentsTags();
+    await fetchDocuments();
 });
 
 const docs = computed(() => doc_store.documents);
+const tags = computed(() => doc_store.tags);
 </script>
 
 <template>
-    <v-container>
-        <h1 class="text-h4 mb-6">Bibliothèque de documents</h1>
+    <v-container fluid>
+        <v-row>
+            <v-col cols="12" md="3" class="d-flex flex-column">
+                <v-sheet
+                    class="pa-4"
+                    elevation="2"
+                    style="position: sticky; top: 16px"
+                >
+                    <h2 class="text-h6 mb-4">Recherche avancée</h2>
+                    <v-text-field
+                        v-model="search_query_title"
+                        label="Par titre"
+                        prepend-inner-icon="mdi-magnify"
+                        variant="outlined"
+                        hide-details
+                        clearable
+                    ></v-text-field
+                    ><br />
+                    <v-text-field
+                        v-model="search_query_author"
+                        label="Par auteur"
+                        prepend-inner-icon="mdi-account"
+                        variant="outlined"
+                        hide-details
+                        clearable
+                    ></v-text-field
+                    ><br />
+                    <v-select
+                        v-model="selected_tag"
+                        :items="tags"
+                        item-title="name"
+                        item-value="id"
+                        label="Filtrer par tag"
+                        variant="outlined"
+                        hide-details
+                    ></v-select
+                    ><br />
+                    <v-select
+                        v-model="selected_languages"
+                        :items="all_languages"
+                        item-title="name"
+                        item-value="code"
+                        label="Filtrer par langue"
+                        variant="outlined"
+                        hide-details
+                    ></v-select>
+                </v-sheet>
+            </v-col>
 
-        <v-card class="mb-6">
-            <v-card-text>
-                <v-row>
-                    <v-col cols="12" md="6">
-                        <v-text-field
-                            v-model="search_query"
-                            label="Rechercher un document"
-                            prepend-inner-icon="mdi-magnify"
-                            variant="outlined"
-                            hide-details
-                            clearable
-                        ></v-text-field>
-                    </v-col>
-                    <v-col cols="12" md="3">
-                        <v-select
-                            v-model="selected_tags"
-                            :items="all_tags"
-                            label="Filtrer par tags"
-                            multiple
-                            chips
-                            variant="outlined"
-                            hide-details
-                        ></v-select>
+            <v-col cols="12" md="9">
+                <h1 class="text-h4 mb-6">Bibliothèque de documents</h1>
+
+                <v-row v-if="!doc_store.loading">
+                    <v-col
+                        v-for="doc in docs"
+                        :key="doc.id"
+                        cols="12"
+                        md="6"
+                        lg="4"
+                    >
+                        <DocumentCard :doc="doc" />
                     </v-col>
                 </v-row>
-            </v-card-text>
-        </v-card>
-        <v-row v-if="!doc_store.loading">
-            <v-col v-for="doc in docs" :key="doc.id" cols="12" md="6" lg="4">
-                <v-card class="mx-auto" height="100%">
-                    <v-card-title class="text-truncate">{{
-                        doc.title
-                    }}</v-card-title>
-                    <v-card-subtitle>
-                        <v-icon small class="mr-1">mdi-account</v-icon>
-                        {{ doc.author }}
-                        <span class="mx-1">•</span>
-                        <v-icon small class="mr-1">mdi-calendar</v-icon>
-                        {{ formatDate(doc.created_at) }}
-                    </v-card-subtitle>
-                    <v-card-text>
-                        <div class="d-flex align-center mb-2">
-                            <v-icon small class="mr-1">mdi-download</v-icon>
-                            <span>{{ doc.downloads }}</span>
-                            <span class="mx-2">•</span>
-                            <v-icon small class="mr-1">mdi-harddisk</v-icon>
-                            <span>{{ convertSize(doc.size) }}</span>
-                        </div>
-                        <div class="d-flex flex-wrap">
-                            <v-chip
-                                v-for="tag in doc.tags"
-                                :key="tag.id"
-                                size="small"
-                                class="mr-1 mb-1"
-                            >
-                                {{ tag.name }}
-                            </v-chip>
-                        </div>
-                    </v-card-text>
-                    <v-card-actions>
-                        <v-btn
-                            variant="text"
-                            color="primary"
-                            :to="`/document/${doc.id}`"
-                        >
-                            <v-icon start>mdi-eye</v-icon>
-                            Voir
-                        </v-btn>
-                        <v-btn variant="text" color="secondary" target="_blank">
-                            <v-icon start>mdi-download</v-icon>
-                            Télécharger
-                        </v-btn>
-                        <v-spacer></v-spacer>
-                        <v-btn icon>
-                            <v-icon>mdi-share-variant</v-icon>
-                        </v-btn>
-                    </v-card-actions>
-                </v-card>
-            </v-col>
-        </v-row>
-        <v-row v-else justify="center">
-            <v-progress-circular
-                indeterminate
-                color="primary"
-                size="64"
-            ></v-progress-circular>
-        </v-row>
 
-        <v-row v-if="!doc_store.loading && docs.length == 0" class="mt-4">
-            <v-col cols="12" class="text-center">
-                <v-alert type="info">
-                    Aucun document ne correspond à votre recherche.
-                </v-alert>
+                <v-row v-else justify="center">
+                    <v-progress-circular
+                        indeterminate
+                        color="primary"
+                        size="64"
+                    ></v-progress-circular>
+                </v-row>
+
+                <v-row
+                    v-if="!doc_store.loading && docs.length == 0"
+                    class="mt-4"
+                >
+                    <v-col cols="12" class="text-center">
+                        <v-alert type="info"
+                            >Aucun document ne correspond à votre
+                            recherche.</v-alert
+                        >
+                    </v-col>
+                </v-row>
+
+                <v-row justify="center" v-if="!doc_store.loading">
+                    <v-pagination
+                        v-model="doc_store.current_page"
+                        :length="doc_store.last_page"
+                        :total-visible="5"
+                        @click="onPageChange"
+                    ></v-pagination>
+                </v-row>
             </v-col>
-        </v-row>
-        <v-row justify="center" v-if="!doc_store.loading">
-            <v-pagination
-                v-model="doc_store.current_page"
-                :length="doc_store.last_page"
-                :total-visible="5"
-                @click="onPageChange"
-            ></v-pagination>
         </v-row>
     </v-container>
 </template>

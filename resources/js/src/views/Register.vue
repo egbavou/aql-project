@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import {useAuthStore} from "@/store/auth";
-import {ref} from "vue";
-import {useRouter} from "vue-router";
+import { useAuthStore } from "@/store/auth";
+import { ref } from "vue";
+import { useRouter } from "vue-router";
 import toast from "@/plugins/toast";
-import {clearFieldErrors} from "@/helpers";
+import { clearFieldErrors } from "@/helpers";
 
 const router = useRouter();
 const auth_store = useAuthStore();
@@ -55,7 +55,7 @@ async function register() {
     });
 
     if (auth_store.errors) {
-        if (["419", "401", "none"].includes(auth_store.errors.status)) {
+        if (["419", "401", "500", "none"].includes(auth_store.errors.status)) {
             toast(auth_store.errors.message, "error");
         }
     }

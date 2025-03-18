@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import {computed, onMounted, ref} from "vue";
-import {useRoute, useRouter} from "vue-router";
-import {useDocumentStore} from "@/store/documents";
-import {clearFieldErrors, convertSize, formatDate} from "@/helpers";
-import {useAuthStore} from "@/store/auth";
+import { computed, onMounted, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { useDocumentStore } from "@/store/documents";
+import { clearFieldErrors, convertSize, formatDate } from "@/helpers";
+import { useAuthStore } from "@/store/auth";
 import toast from "@/plugins/toast";
 
 const route = useRoute();
@@ -35,7 +35,7 @@ async function shareDocument(id: number) {
     });
 
     if (doc_store.errors) {
-        if (["419", "401", "none"].includes(doc_store.errors.status)) {
+        if (["419", "401", "500", "none"].includes(doc_store.errors.status)) {
             toast(doc_store.errors.message, "error");
         }
     }
@@ -404,7 +404,7 @@ const doc = computed(() => doc_store.document);
                             <v-text-field
                                 v-model="form.email"
                                 :rules="email_rules"
-                                label="Email"
+                                label="Email du destinataire"
                                 placeholder="Entrer l'email"
                                 type="email"
                                 variant="outlined"

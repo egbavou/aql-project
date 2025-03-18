@@ -237,6 +237,8 @@ export const useAuthStore = defineStore('auth', () => {
 					errors.value = { 'status': '419', 'message': 'Page expirée. Veuillez actualiser la page' }
 				} else if (error.response.status == 400) {
 					errors.value = { 'status': '400', 'message': 'Code incorrect ou code expiré' }
+				} else if (error.response.status == 500) {
+					errors.value = { 'status': '500', 'message': 'Une erreur s\'est produite. Veuillez réessayer' }
 				}
 			} else {
 				errors.value = { 'status': 'none', 'message': 'Une erreur s\'est produite. Veuillez réessayer' }

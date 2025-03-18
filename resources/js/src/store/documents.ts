@@ -1,7 +1,7 @@
-import {defineStore} from 'pinia'
-import {ref} from 'vue'
+import { defineStore } from 'pinia'
+import { ref } from 'vue'
 import axiosUser from '@/axios';
-import {axiosError, downloadFile} from '@/helpers';
+import { axiosError, downloadFile } from '@/helpers';
 
 export interface DocumentData {
     title: string;
@@ -46,8 +46,9 @@ export const useDocumentStore = defineStore('documents', () => {
     const current_page = ref(1);
     const last_page = ref(1);
     const total = ref(0);
+    const tags = ref<Tag[]>([])
 
-    async function getDocuments(page: number = current_page.value) {
+    async function getDocuments(page: number = current_page.value, filters: any = {}) {
         loading.value = true
         errors.value = null
         try {
@@ -56,7 +57,12 @@ export const useDocumentStore = defineStore('documents', () => {
             const per_page: number = 12;
             const response = await axiosUser.get(`/api/documents`, {
                 params: {
-                    page: page, per_page: per_page
+                    page: page,
+                    per_page: per_page,
+                    title: filters.title || "",
+                    author: filters.author || "",
+                    language: filters.language || "",
+                    tag: Number(filters.tag) || "",
                 }
             });
 
@@ -215,8 +221,9 @@ export const useDocumentStore = defineStore('documents', () => {
             });
 
             loading2.value = false
+            const filename = `DocShare_${Date.now()}`
 
-            return downloadFile(document.value!.title, response.data, "application/pdf");
+            return downloadFile(filename, response.data, "application/pdf");
         } catch (error) {
             loading2.value = false
             errors.value = axiosError(error)
@@ -288,6 +295,27 @@ export const useDocumentStore = defineStore('documents', () => {
         }
     }
 
+    async function getDocumentsTags() {
+        loading.value = true
+        errors.value = null
+        try {
+
+            await axiosUser.get(`/sanctum/csrf-cookie`);
+            const response = await axiosUser.get('/api/tags');
+
+            loading.value = false
+
+            tags.value = response.data
+
+            return response.data
+        } catch (error) {
+            loading.value = false
+            errors.value = axiosError(error)
+
+            return false
+        }
+    }
+
 
     return {
         documents,
@@ -298,6 +326,7 @@ export const useDocumentStore = defineStore('documents', () => {
         loading,
         loading2,
         errors,
+        tags,
         getDocumentById,
         addDocument,
         getDocuments,
@@ -307,6 +336,7 @@ export const useDocumentStore = defineStore('documents', () => {
         shareDocument,
         generateDocLink,
         updateDocument,
-        getDocByToken
+        getDocByToken,
+        getDocumentsTags
     }
 })

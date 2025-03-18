@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { useDocumentStore } from "@/store/documents";
-import { convertSize, formatDate } from "@/helpers";
+import DocumentCard from "@/components/DocumentCard.vue";
 
 const doc_store = useDocumentStore();
 const search_query = ref("");
@@ -53,51 +53,7 @@ const docs = computed(() => doc_store.documents);
         </v-card>
         <v-row v-if="!doc_store.loading">
             <v-col v-for="doc in docs" :key="doc.id" cols="12" md="6" lg="4">
-                <v-card class="mx-auto" height="100%">
-                    <v-card-title class="text-truncate">{{
-                        doc.title
-                    }}</v-card-title>
-                    <v-card-subtitle>
-                        <v-icon small class="mr-1">mdi-account</v-icon>
-                        {{ doc.author }}
-                        <span class="mx-1">•</span>
-                        <v-icon small class="mr-1">mdi-calendar</v-icon>
-                        {{ formatDate(doc.created_at) }}
-                    </v-card-subtitle>
-                    <v-card-text>
-                        <div class="d-flex align-center mb-2">
-                            <v-icon small class="mr-1">mdi-download</v-icon>
-                            <span>{{ doc.downloads }}</span>
-                            <span class="mx-2">•</span>
-                            <v-icon small class="mr-1">mdi-harddisk</v-icon>
-                            <span>{{ convertSize(doc.size) }}</span>
-                        </div>
-                        <div class="d-flex flex-wrap">
-                            <v-chip
-                                v-for="tag in doc.tags"
-                                :key="tag.id"
-                                size="small"
-                                class="mr-1 mb-1"
-                            >
-                                {{ tag.name }}
-                            </v-chip>
-                        </div>
-                    </v-card-text>
-                    <v-card-actions>
-                        <v-btn
-                            variant="text"
-                            color="primary"
-                            :to="`/document/${doc.id}`"
-                        >
-                            <v-icon start>mdi-eye</v-icon>
-                            Voir
-                        </v-btn>
-                        <v-spacer></v-spacer>
-                        <v-btn icon>
-                            <v-icon>mdi-share-variant</v-icon>
-                        </v-btn>
-                    </v-card-actions>
-                </v-card>
+                <DocumentCard :doc="doc" />
             </v-col>
         </v-row>
         <v-row v-else justify="center">

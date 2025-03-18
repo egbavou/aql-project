@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { useRouter } from "vue-router";
 import { useDocumentStore } from "@/store/documents";
-import { formatDate, convertSize } from "@/helpers";
 import { computed, onMounted } from "vue";
+import DocumentCard from "@/components/DocumentCard.vue";
 
 const router = useRouter();
 const doc_store = useDocumentStore();
@@ -65,63 +65,7 @@ const recent_docs = computed(() => doc_store.documents.slice(0, 6));
                         md="6"
                         lg="4"
                     >
-                        <v-card class="mx-auto" height="100%">
-                            <v-card-title class="text-truncate">{{
-                                doc.title
-                            }}</v-card-title>
-                            <v-card-subtitle>
-                                <v-icon small class="mr-1">mdi-account</v-icon>
-                                {{ doc.author }}
-                                <span class="mx-1">•</span>
-                                <v-icon small class="mr-1">mdi-calendar</v-icon>
-                                {{ formatDate(doc.created_at) }}
-                            </v-card-subtitle>
-                            <v-card-text>
-                                <div class="d-flex align-center mb-2">
-                                    <v-icon small class="mr-1"
-                                        >mdi-download</v-icon
-                                    >
-                                    <span>{{ doc.downloads }}</span>
-                                    <span class="mx-2">•</span>
-                                    <v-icon small class="mr-1"
-                                        >mdi-harddisk</v-icon
-                                    >
-                                    <span>{{ convertSize(doc.size) }}</span>
-                                </div>
-                                <div class="d-flex flex-wrap">
-                                    <v-chip
-                                        v-for="tag in doc.tags"
-                                        :key="tag.id"
-                                        size="small"
-                                        class="mr-1 mb-1"
-                                    >
-                                        {{ tag.name }}
-                                    </v-chip>
-                                </div>
-                            </v-card-text>
-                            <v-card-actions>
-                                <v-btn
-                                    variant="text"
-                                    color="primary"
-                                    :to="`/document/${doc.id}`"
-                                >
-                                    <v-icon start>mdi-eye</v-icon>
-                                    Voir
-                                </v-btn>
-                                <v-btn
-                                    variant="text"
-                                    color="secondary"
-                                    target="_blank"
-                                >
-                                    <v-icon start>mdi-download</v-icon>
-                                    Télécharger
-                                </v-btn>
-                                <v-spacer></v-spacer>
-                                <v-btn icon>
-                                    <v-icon>mdi-share-variant</v-icon>
-                                </v-btn>
-                            </v-card-actions>
-                        </v-card>
+                        <DocumentCard :doc="doc" />
                     </v-col>
                 </v-row>
                 <v-row v-else justify="center">

@@ -11,6 +11,8 @@ export function axiosError(error: any) {
             return { status: "419", message: "Page expirée. Veuillez actualiser la page" };
         } else if (status === 401) {
             return { status: "401", message: "Email ou mot de passe incorrect" };
+        } else if (status === 500) {
+            return { status: '500', message: "Une erreur s'est produite. Veuillez réessayer" };
         }
     }
 
