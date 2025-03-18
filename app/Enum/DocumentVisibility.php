@@ -9,6 +9,9 @@ enum DocumentVisibility: string
     case linkSharedFile = 'link_shared';
     case accountSharedFile = 'account_shared';
 
+    /**
+     * @return string[]
+     */
     public static function values(): array
     {
         return ['public', 'private', 'link_shared', 'account_shared'];

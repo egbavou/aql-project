@@ -14,7 +14,16 @@ class PasswordResetToken extends Model
         'token'
     ];
 
-    public $timestamps = ["created_at"];
+    public $timestamps = false;
+
+    public static function boot(): void
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            $model->created_at = $model->freshTimestamp();
+        });
+    }
 
     const UPDATED_AT = null;
 }

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Database\Factories\TagFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -11,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  */
 class Tag extends Model
 {
+    /** @use HasFactory<TagFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -21,6 +23,9 @@ class Tag extends Model
         'pivot'
     ];
 
+    /**
+     * @return BelongsToMany<Document, $this>
+     */
     public function documents(): BelongsToMany
     {
         return $this->belongsToMany(Document::class);

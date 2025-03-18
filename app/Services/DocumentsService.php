@@ -13,9 +13,11 @@ use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 use Smalot\PdfParser\Parser;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Throwable;
@@ -24,6 +26,10 @@ final class DocumentsService
 {
     private const PRIVATE_PATH = 'app/private/';
 
+    /**
+     * @param DocumentFilterRequest $request
+     * @return LengthAwarePaginator<Document>
+     */
     public function list(DocumentFilterRequest $request): LengthAwarePaginator
     {
         $query = Document::with('tags')
@@ -31,6 +37,10 @@ final class DocumentsService
         return $this->finalizeDocumentFiltering($query, $request);
     }
 
+    /**
+     * @param DocumentFilterRequest $request
+     * @return LengthAwarePaginator<Document>
+     */
     public function listCreated(DocumentFilterRequest $request): LengthAwarePaginator
     {
         $query = Document::with('tags', 'accesses', 'accesses.user')
@@ -38,6 +48,10 @@ final class DocumentsService
         return $this->finalizeDocumentFiltering($query, $request);
     }
 
+    /**
+     * @param DocumentFilterRequest $request
+     * @return LengthAwarePaginator<Document>
+     */
     public function listSharedWith(DocumentFilterRequest $request): LengthAwarePaginator
     {
         $query = Document::with('tags')
@@ -86,19 +100,20 @@ final class DocumentsService
      */
     public function create(DocumentCreateRequest $request): Document
     {
-        $filePath = $request->file('file')
-            ->store(Document::FOLDER);
+        /** @var UploadedFile $file */
+        $file = $request->file('file');
+        $filePath = $file->store(Document::FOLDER);
         $data = $request->safe()->except(['file', 'tags']);
         $parser = new Parser();
         $pdf = $parser->parseFile(storage_path(self::PRIVATE_PATH . $filePath));
         $data['path'] = $filePath;
         $data['pages'] = count($pdf->getPages());
-        $data['size'] = $request->file('file')->getSize();
+        $data['size'] = $file->getSize();
         $data['user_id'] = $request->user()->id;
         $tags = $request->input('tags', []);
 
         return DB::transaction(function () use ($data, $tags) {
-            $tagIds = collect($tags)->map(fn($tagName) => Tag::firstOrCreate(['name' => $tagName])->id);
+            $tagIds = array_map(fn($tag) => Tag::firstOrCreate(['name' => $tag])->id, $tags);
             $document = Document::create($data);
             $document->tags()->sync($tagIds);
             $document->load('tags');
@@ -116,8 +131,16 @@ final class DocumentsService
 
         if ($request->hasFile('file')) {
             File::delete(storage_path(self::PRIVATE_PATH . $document->path));
+            /** @var UploadedFile $file */
             $file = $request->file('file');
-            $filePath = $file->store(Document::FOLDER);
+            $fileSavePath = $file->store(Document::FOLDER);
+
+            if ($fileSavePath === false) {
+                Log::error("Failed to store document file {$file->getClientOriginalName()}");
+                abort(500);
+            }
+
+            $filePath = strval($fileSavePath);
             $fileSize = $file->getSize();
             $parser = new Parser();
             $pdf = $parser->parseFile(storage_path(self::PRIVATE_PATH . $filePath));
@@ -131,7 +154,7 @@ final class DocumentsService
         $tags = $request->input('tags', []);
         $data = $request->safe()->except(['file', 'tags']);
         return DB::transaction(function () use ($pages, $document, $data, $filePath, $fileSize, $tags) {
-            $tagIds = collect($tags)->map(fn($tagName) => Tag::firstOrCreate(['name' => $tagName])->id);
+            $tagIds = array_map(fn($tag) => Tag::firstOrCreate(['name' => $tag])->id, $tags);
             $document->fill($data);
             $document->path = $filePath;
             $document->size = $fileSize;
@@ -151,6 +174,11 @@ final class DocumentsService
         $document->delete();
     }
 
+    /**
+     * @param Builder<Document> $builder
+     * @param DocumentFilterRequest $request
+     * @return LengthAwarePaginator<Document>
+     */
     private function finalizeDocumentFiltering(Builder $builder, DocumentFilterRequest $request): LengthAwarePaginator
     {
         $query = $builder;

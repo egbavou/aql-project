@@ -15,11 +15,17 @@ class Like extends Model
         'document_id'
     ];
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * @return BelongsTo<Document, $this>
+     */
     public function document(): BelongsTo
     {
         return $this->belongsTo(Document::class);

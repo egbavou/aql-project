@@ -47,6 +47,7 @@ final class AccessService
 
     public function removeAccess(int $accessId, Request $request): void
     {
+        /** @var Access $access */
         $access = Access::with('document')
             ->findOrFail($accessId);
         abort_if($access->document->user_id !== $request->user()->id, 403);

@@ -19,8 +19,8 @@ class AccessFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id'       => User::inRandomOrder()->first()->id,
-            'document_id'   => Document::inRandomOrder()->first()->id
+            'user_id' => User::inRandomOrder()->first()->id,
+            'document_id' => Document::inRandomOrder()->first()->id
         ];
     }
 }

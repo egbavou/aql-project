@@ -27,7 +27,7 @@ class AuthController extends Controller
         $credentials = $request->validated();
         if (Auth::attempt($credentials)) {
             $user = User::where('email', $credentials['email'])
-                ->first();
+                ->firstOrFail();
             $token = $user->createToken(Str::uuid()->toString())
                 ->plainTextToken;
             return response()->json(compact('user', 'token'));

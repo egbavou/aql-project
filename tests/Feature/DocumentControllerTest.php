@@ -19,61 +19,7 @@ class DocumentControllerTest extends TestCase
 
     private User $user;
     private string $path;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->user = User::factory()->create();
-
-        $this->path = 'documents/test.pdf';
-
-        $file = UploadedFile::fake()->create('test.pdf', 100);
-        Storage::put($this->path, $file->getContent());
-
-        $this->assertInstanceOf(User::class, $this->user); // Vérification
-        $this->actingAs($this->user);
-
-    }
-
-    public function test_index_returns_documents()
-    {
-        Document::factory()->count(3)->create(['visibility' => 'public']);
-
-        $response = $this->getJson('/api/documents');
-
-        $response->assertStatus(200)->assertJsonCount(3, 'data');
-    }
-
-    public function test_index_created_returns_user_documents()
-    {
-        Document::factory()->count(2)->create(['user_id' => $this->user->id]);
-        Document::factory()->create();
-
-        $response = $this->getJson('/api/documents/created');
-        $documents = Document::where('user_id', $this->user->id)->get();
-        $response->assertStatus(200)->assertJsonCount($documents->count(), 'data');
-    }
-
-    public function test_index_shared_with_returns_shared_documents()
-    {
-        /** @var Document $document */
-        $document = Document::factory()->create();
-        $document->accesses()->create(['user_id' => $this->user->id]);
-
-        $response = $this->getJson('/api/documents/shared');
-        $response->assertStatus(200)->assertJsonCount(1, 'data');
-    }
-
-    public function test_store_creates_a_document()
-    {
-        $languages = Language::values();
-        $language = $languages[array_rand($languages)];
-
-        $visibilities = ['public', 'private'];
-        $visibility = $visibilities[array_rand($visibilities)];
-
-
-        $validPdfContent = "%PDF-1.1
+    private string  $validPdfContent = "%PDF-1.1
 %¥±ë
 
 1 0 obj
@@ -132,14 +78,65 @@ startxref
 565
 %%EOF";
 
-// Simulate a valid PDF file
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->user = User::factory()->create();
+
+        $this->path = 'documents/test.pdf';
+
+        $file = UploadedFile::fake()->create('test.pdf', 100);
+        Storage::put($this->path, $file->getContent());
+
+        $this->assertInstanceOf(User::class, $this->user); // Vérification
+        $this->actingAs($this->user);
+
+    }
+
+    public function test_index_returns_documents()
+    {
+        Document::factory()->count(3)->create(['visibility' => 'public']);
+
+        $response = $this->getJson('/api/documents');
+
+        $response->assertStatus(200)->assertJsonCount(3, 'data');
+    }
+
+    public function test_index_created_returns_user_documents()
+    {
+        Document::factory()->count(2)->create(['user_id' => $this->user->id]);
+        Document::factory()->create();
+
+        $response = $this->getJson('/api/documents/created');
+        $documents = Document::where('user_id', $this->user->id)->get();
+        $response->assertStatus(200)->assertJsonCount($documents->count(), 'data');
+    }
+
+    public function test_index_shared_with_returns_shared_documents()
+    {
+        /** @var Document $document */
+        $document = Document::factory()->create();
+        $document->accesses()->create(['user_id' => $this->user->id]);
+
+        $response = $this->getJson('/api/documents/shared');
+        $response->assertStatus(200)->assertJsonCount(1, 'data');
+    }
+
+    public function test_store_creates_a_document()
+    {
+        $languages = Language::values();
+        $language = $languages[array_rand($languages)];
+
+        $visibilities = ['public', 'private'];
+        $visibility = $visibilities[array_rand($visibilities)];
+
         $data = [
             'title' => 'Test Document',
             'author' => 'Test Author',
             'pages' => 100,
             'language' => $language,
             'visibility' => $visibility,
-            'file' => UploadedFile::fake()->createWithContent('document.pdf', $validPdfContent),
+            'file' => UploadedFile::fake()->createWithContent('document.pdf', $this->validPdfContent),
             'tags' => ['Tag1', 'Tag2']
         ];
 
@@ -148,11 +145,24 @@ startxref
         $response->assertStatus(200)->assertJsonFragment(['title' => 'Test Document']);
     }
 
-    public function test_update_a_document()
+    public function test_update_a_document_without_replacing_file()
     {
         $document = Document::factory()->create(['user_id' => $this->user->id]);
         $data = $document->toArray();
         $data['title'] = "Updated Title";
+
+        $response = $this->postJson("/api/documents/$document->id", $data);
+
+        $response->assertStatus(200)->assertJsonFragment(['title' => 'Updated Title']);
+    }
+
+    public function test_update_a_document_by_replacing_file()
+    {
+        $document = Document::factory()->create(['user_id' => $this->user->id]);
+        $data = $document->toArray();
+        $data['title'] = "Updated Title";
+        $data['file'] = UploadedFile::fake()->createWithContent('document.pdf', $this->validPdfContent);
+
 
         $response = $this->postJson("/api/documents/$document->id", $data);
 
