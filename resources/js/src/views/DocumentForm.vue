@@ -3,9 +3,10 @@ import { clearFieldErrors } from "@/helpers";
 import toast from "@/plugins/toast";
 import { useDocumentStore } from "@/store/documents";
 import { computed, ref, watch } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 
 const route = useRoute();
+const router = useRouter();
 const doc_store = useDocumentStore();
 
 let doc_id = Number(route.params.id);
@@ -100,11 +101,12 @@ async function submitDocument() {
 
     let success: boolean;
     let title: string;
+    let id: number;
 
     if (is_edit.value) {
-        [success, title] = await doc_store.updateDocument(doc_id, payload);
+        [success, title, id] = await doc_store.updateDocument(doc_id, payload);
     } else {
-        [success, title] = await doc_store.addDocument(payload);
+        [success, title, id] = await doc_store.addDocument(payload);
     }
 
     if (!success) {
@@ -118,6 +120,8 @@ async function submitDocument() {
             `Document: ${title} ${is_edit.value ? "modifié" : "publié"}.`,
             "success"
         );
+
+        router.push({ name: "DocumentView", params: { id: id } });
     }
 }
 

@@ -54,7 +54,7 @@ export const useDocumentStore = defineStore('documents', () => {
         try {
 
             await axiosUser.get(`/sanctum/csrf-cookie`);
-            const per_page: number = 12;
+            const per_page: number = 18;
             const response = await axiosUser.get(`/api/documents`, {
                 params: {
                     page: page,
@@ -83,17 +83,22 @@ export const useDocumentStore = defineStore('documents', () => {
         }
     }
 
-    async function getDocumentsMe(cat: string = "created") {
+    async function getDocumentsMe(page: number = current_page.value, cat: string = "created", filters: any = {}) {
         loading.value = true
         errors.value = null
         try {
 
             await axiosUser.get(`/sanctum/csrf-cookie`);
-            const per_page: number = 12;
-            const page: number = current_page.value
+            const per_page: number = 18;
+            // const page: number = current_page.value
             const response = await axiosUser.get(`/api/documents/${cat}`, {
                 params: {
-                    page: page, per_page: per_page
+                    page: page,
+                    per_page: per_page,
+                    title: filters.title || "",
+                    author: filters.author || "",
+                    language: filters.language || "",
+                    tag: Number(filters.tag) || "",
                 }
             });
 
@@ -113,7 +118,7 @@ export const useDocumentStore = defineStore('documents', () => {
         }
     }
 
-    async function addDocument(formdata: DocumentData): Promise<[boolean, string]> {
+    async function addDocument(formdata: DocumentData): Promise<[boolean, string, number]> {
         loading.value = true
         errors.value = null
         try {
@@ -129,19 +134,19 @@ export const useDocumentStore = defineStore('documents', () => {
 
             loading.value = false;
 
-            if (response.status == 200) return [true, response.data.title]
+            if (response.status == 200) return [true, response.data.title, response.data.id]
 
         } catch (error) {
             loading.value = false
             errors.value = axiosError(error)
 
-            return [false, "erreur"]
+            return [false, "erreur", 1]
         }
 
-        return [false, "erreur"];
+        return [false, "erreur", 1];
     }
 
-    async function updateDocument(id: number, formdata: DocumentData): Promise<[boolean, string]> {
+    async function updateDocument(id: number, formdata: DocumentData): Promise<[boolean, string, number]> {
         loading.value = true
         errors.value = null
         try {
@@ -156,16 +161,16 @@ export const useDocumentStore = defineStore('documents', () => {
 
             loading.value = false;
 
-            if (response.status == 200) return [true, response.data.title]
+            if (response.status == 200) return [true, response.data.title, response.data.id]
 
         } catch (error) {
             loading.value = false
             errors.value = axiosError(error)
 
-            return [false, "erreur"]
+            return [false, "erreur", 1]
         }
 
-        return [false, "erreur"]
+        return [false, "erreur", 1]
     }
 
     async function getDocumentById(id: number) {
