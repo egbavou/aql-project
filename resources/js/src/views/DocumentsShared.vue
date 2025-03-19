@@ -36,6 +36,9 @@ const docs = computed(() => doc_store.documents);
     <v-container fluid>
         <v-row>
             <v-col cols="12" md="3" class="d-flex flex-column">
+                <h1 class="text-h4 d-block d-lg-none mb-6">
+                    Documents partagés avec moi
+                </h1>
                 <FiltreDocForm
                     v-model:search_title="search_query_title"
                     v-model:search_author="search_query_author"
@@ -46,7 +49,9 @@ const docs = computed(() => doc_store.documents);
             </v-col>
 
             <v-col cols="12" md="9">
-                <h1 class="text-h4 mb-6">Documents partagés avec moi</h1>
+                <h1 class="text-h4 d-none d-lg-block mb-6">
+                    Documents partagés avec moi
+                </h1>
 
                 <v-row v-if="!doc_store.loading">
                     <v-col
