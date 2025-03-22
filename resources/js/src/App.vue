@@ -13,7 +13,7 @@ async function logout() {
 
     if (success) {
         toast("Vous êtes déconnecté à présent", "success");
-        router.push("/");
+        await router.push("/");
     }
 }
 </script>
@@ -155,7 +155,7 @@ async function logout() {
                     <v-list-item
                         prepend-icon="mdi-logout"
                         title="Se déconnecter"
-                        @click="void"
+                        @click="logout"
                     ></v-list-item>
                 </template>
                 <template v-else>

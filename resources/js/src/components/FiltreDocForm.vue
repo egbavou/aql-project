@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, watch, defineProps, defineEmits } from "vue";
-import { useDocumentStore } from "@/store/documents";
+import {computed, defineEmits, defineProps, ref} from "vue";
+import {useDocumentStore} from "@/store/documents";
 
 const doc_store = useDocumentStore();
 

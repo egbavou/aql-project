@@ -49,7 +49,7 @@ async function resetPassword() {
 
     if (success) {
         toast("Mot de passe réinitialisé. Connectez-vous à présent", "success");
-        router.push("/login");
+        await router.push("/login");
     }
 }
 </script>

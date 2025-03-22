@@ -35,7 +35,7 @@ async function login() {
 
     if (success) {
         toast("Vous êtes à présent connecté", "success");
-        router.push("/documents");
+        await router.push("/documents");
     }
 }
 </script>

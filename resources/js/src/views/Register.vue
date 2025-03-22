@@ -65,7 +65,7 @@ async function register() {
             "Inscription réussie ! Vous êtes à présent connecté !",
             "success"
         );
-        router.push("/documents");
+        await router.push("/documents");
     }
 }
 </script>

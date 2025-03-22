@@ -121,7 +121,7 @@ async function submitDocument() {
             "success"
         );
 
-        router.push({name: "DocumentView", params: {id: id}});
+        await router.push({name: "DocumentView", params: {id: id}});
     }
 }
 

@@ -34,7 +34,7 @@ async function forgotPassword() {
 
     if (success) {
         toast("Un code a été envoyé à votre adresse email", "success");
-        router.push("/password-reset");
+        await router.push("/password-reset");
     }
 }
 </script>

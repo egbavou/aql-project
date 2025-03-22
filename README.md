@@ -2,7 +2,7 @@
 
 ## Prerequisites
 - [Git](https://git-scm.com/downloads)
-- [PHP (^8.2)](https://www.php.net/downloads.php)
+- [PHP (^8.2)](https://www.php.net/downloads.php) (ext : iconv)
 - [Composer](https://getcomposer.org/download/)
 - [Mysql / Mariadb](https://mariadb.org/download/)
 - [Docker](https://docs.docker.com/get-started/get-docker/) (not required)
