@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { clearFieldErrors } from "@/helpers";
+import {clearFieldErrors} from "@/helpers";
 import toast from "@/plugins/toast";
-import { useDocumentStore } from "@/store/documents";
-import { computed, ref, watch } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import {useDocumentStore} from "@/store/documents";
+import {computed, ref, watch} from "vue";
+import {useRoute, useRouter} from "vue-router";
 
 const route = useRoute();
 const router = useRouter();
@@ -13,14 +13,14 @@ let doc_id = Number(route.params.id);
 const is_edit = computed(() => !!doc_id);
 
 const languages = ref([
-    { code: "fr", name: "Français" },
-    { code: "en", name: "Anglais" },
-    { code: "es", name: "Espagnol" },
+    {code: "fr", name: "Français"},
+    {code: "en", name: "Anglais"},
+    {code: "es", name: "Espagnol"},
 ]);
 
 const visibilities = ref([
-    { code: "public", name: "Publique" },
-    { code: "private", name: "Privé" },
+    {code: "public", name: "Publique"},
+    {code: "private", name: "Privé"},
 ]);
 
 const form = ref<{
@@ -85,7 +85,7 @@ function onFileChange(event: Event) {
     }
 }
 
-const { form_errors, clearFieldError } = clearFieldErrors(doc_store, form);
+const {form_errors, clearFieldError} = clearFieldErrors(doc_store, form);
 
 async function submitDocument() {
     if (!form_valid.value) return;
@@ -121,7 +121,7 @@ async function submitDocument() {
             "success"
         );
 
-        router.push({ name: "DocumentView", params: { id: id } });
+        router.push({name: "DocumentView", params: {id: id}});
     }
 }
 
@@ -149,13 +149,20 @@ watch(
             };
         }
     },
-    { immediate: true }
+    {immediate: true}
 );
 </script>
 
 <template>
     <v-container>
-        <v-row justify="center">
+        <v-row v-if="is_edit && doc_store.loading" justify="center" class="mt-4">
+            <v-progress-circular
+                indeterminate
+                color="primary"
+                size="64"
+            ></v-progress-circular>
+        </v-row>
+        <v-row justify="center" v-else>
             <v-col cols="12" md="8">
                 <h1 class="text-h4 mb-6">
                     {{
@@ -344,7 +351,7 @@ watch(
                                         @click="submitDocument"
                                     >
                                         <v-icon start
-                                            >{{
+                                        >{{
                                                 route.params.id
                                                     ? "mdi-content-save"
                                                     : "mdi-cloud-upload"

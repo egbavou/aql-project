@@ -17,7 +17,7 @@ const form = ref({
     email: auth_store.user?.email,
 });
 
-const { form_errors, clearFieldError } = clearFieldErrors(auth_store, form);
+const {form_errors, clearFieldError} = clearFieldErrors(auth_store, form);
 
 async function updateProfile() {
     if (!form_valid.value) return;
@@ -25,14 +25,14 @@ async function updateProfile() {
     const success = await auth_store.udpateProfile(
         Number(auth_store.user?.id),
         {
-            name: form.value.name,
-            email: form.value.email,
+            name: form.value.name!,
+            email: form.value.email!
         }
     );
 
     if (success) {
-        toast("Informations profil modifié", "success");
-        router.push("/profile");
+        toast("Informations de profil modifiées", "success");
+        await router.push("/profile");
     }
 }
 
@@ -41,15 +41,15 @@ async function logout() {
 
     if (success) {
         toast("Vous êtes déconnecté à présent", "success");
-        router.push("/");
+        await router.push("/");
     }
 }
 
 onMounted(async () => {
-    await doc_store.getDocumentsMe("created");
+    await doc_store.getDocumentsMe(1, "created");
 });
 
-const my_docs = computed(() => doc_store.documents.slice(0, 5));
+const my_docs = computed(() => doc_store.documents);
 </script>
 
 <template>
@@ -62,12 +62,15 @@ const my_docs = computed(() => doc_store.documents.slice(0, 5));
                     <v-card-text class="text-center">
                         <v-avatar size="120" color="primary" class="mb-4">
                             <span class="text-h4 text-white">{{
-                                auth_store.user?.name.substr(0, 2)
-                            }}</span>
+                                    auth_store.user?.name.slice(0, 2)
+                                }}</span>
                         </v-avatar>
                         <h2 class="text-h5">{{ auth_store.user?.name }}</h2>
                         <p class="text-subtitle-1 text-medium-emphasis">
                             {{ auth_store.user?.email }}
+                        </p>
+                        <p class="text-subtitle-2 text-medium-emphasis">
+                            Inscrit depuis le {{ formatDate(auth_store.user!.created_at) }}
                         </p>
                         <v-chip class="mt-2" color="primary" size="small">
                             En ligne
@@ -119,15 +122,25 @@ const my_docs = computed(() => doc_store.documents.slice(0, 5));
                     </v-card-title>
 
                     <v-card-text v-if="my_docs">
-                        <v-list>
+                        <v-row v-if="doc_store.loading" justify="center" class="mt-4 mb-4">
+                            <v-progress-circular
+                                v-if="doc_store.loading"
+                                indeterminate
+                                color="primary"
+                                size="64"
+                            ></v-progress-circular>
+                        </v-row>
+
+                        <v-list v-else>
                             <v-list-item
                                 v-for="doc in my_docs"
                                 :key="doc.id"
                                 :to="`/document/${doc.id}`"
                             >
                                 <v-list-item-title>{{
-                                    doc.title
-                                }}</v-list-item-title>
+                                        doc.title
+                                    }}
+                                </v-list-item-title>
                                 <v-list-item-subtitle>
                                     {{ formatDate(doc.created_at) }} •
                                     {{ convertSize(doc.size) }}
@@ -191,13 +204,15 @@ const my_docs = computed(() => doc_store.documents.slice(0, 5));
                             color="grey"
                             variant="text"
                             @click="show_edit_profil_dialog = false"
-                            >Annuler</v-btn
+                        >Annuler
+                        </v-btn
                         >
                         <v-btn
                             color="primary"
                             :loading="auth_store.loading"
                             @click="updateProfile"
-                            >Modifier</v-btn
+                        >Modifier
+                        </v-btn
                         >
                     </v-card-actions>
                 </v-card>

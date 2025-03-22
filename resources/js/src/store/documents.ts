@@ -1,7 +1,7 @@
-import { defineStore } from 'pinia'
-import { ref } from 'vue'
-import axiosUser from '@/axios';
-import { axiosError, downloadFile } from '@/helpers';
+import {defineStore} from "pinia";
+import {ref} from "vue";
+import axiosUser from "@/axios";
+import {axiosError, downloadFile} from "@/helpers";
 
 export interface DocumentData {
     title: string;
@@ -27,7 +27,7 @@ interface Document {
     author: string;
     pages: number;
     language: string;
-    visibility: string;
+    visibility: "public" | "private" | "link_shared" | "account_shared";
     token: string | null;
     user_id: number;
     created_at: string;
@@ -38,19 +38,19 @@ interface ShareDocumentData {
     email: string;
 }
 
-export const useDocumentStore = defineStore('documents', () => {
-    const loading = ref(false), loading2 = ref(false)
+export const useDocumentStore = defineStore("documents", () => {
+    const loading = ref(false), loading2 = ref(false);
     const errors = ref<any>(null);
     const documents = ref<Document[]>([]);
     const document = ref<Document>();
     const current_page = ref(1);
     const last_page = ref(1);
     const total = ref(0);
-    const tags = ref<Tag[]>([])
+    const tags = ref<Tag[]>([]);
 
     async function getDocuments(page: number = current_page.value, filters: any = {}) {
-        loading.value = true
-        errors.value = null
+        loading.value = true;
+        errors.value = null;
         try {
 
             await axiosUser.get(`/sanctum/csrf-cookie`);
@@ -66,26 +66,23 @@ export const useDocumentStore = defineStore('documents', () => {
                 }
             });
 
-            loading.value = false
 
-            documents.value = response.data.data
-            current_page.value = response.data.current_page
-            last_page.value = response.data.last_page
-            total.value = response.data.total
-
-            return response.data.data
-            // console.log(response)
+            documents.value = response.data.data;
+            current_page.value = response.data.current_page;
+            last_page.value = response.data.last_page;
+            total.value = response.data.total;
+            loading.value = false;
+            return response.data.data;
         } catch (error) {
-            loading.value = false
-            errors.value = axiosError(error)
-
-            return false
+            errors.value = axiosError(error);
+            loading.value = false;
+            return false;
         }
     }
 
     async function getDocumentsMe(page: number = current_page.value, cat: string = "created", filters: any = {}) {
-        loading.value = true
-        errors.value = null
+        loading.value = true;
+        errors.value = null;
         try {
 
             await axiosUser.get(`/sanctum/csrf-cookie`);
@@ -102,29 +99,27 @@ export const useDocumentStore = defineStore('documents', () => {
                 }
             });
 
-            loading.value = false
-
-            documents.value = response.data.data
-            current_page.value = response.data.current_page
-            last_page.value = response.data.last_page
-            total.value = response.data.total
-
-            return response.data.data
+            documents.value = response.data.data;
+            current_page.value = response.data.current_page;
+            last_page.value = response.data.last_page;
+            total.value = response.data.total;
+            loading.value = false;
+            return response.data.data;
         } catch (error) {
-            loading.value = false
-            errors.value = axiosError(error)
+            loading.value = false;
+            errors.value = axiosError(error);
 
-            return false
+            return false;
         }
     }
 
     async function addDocument(formdata: DocumentData): Promise<[boolean, string, number]> {
-        loading.value = true
-        errors.value = null
+        loading.value = true;
+        errors.value = null;
         try {
             let headers = {
                 "Content-Type": "multipart/form-data"
-            }
+            };
 
             await axiosUser.get(`/sanctum/csrf-cookie`);
 
@@ -134,25 +129,25 @@ export const useDocumentStore = defineStore('documents', () => {
 
             loading.value = false;
 
-            if (response.status == 200) return [true, response.data.title, response.data.id]
+            if (response.status == 200) return [true, response.data.title, response.data.id];
 
         } catch (error) {
-            loading.value = false
-            errors.value = axiosError(error)
+            loading.value = false;
+            errors.value = axiosError(error);
 
-            return [false, "erreur", 1]
+            return [false, "erreur", 1];
         }
 
         return [false, "erreur", 1];
     }
 
     async function updateDocument(id: number, formdata: DocumentData): Promise<[boolean, string, number]> {
-        loading.value = true
-        errors.value = null
+        loading.value = true;
+        errors.value = null;
         try {
             let headers = {
                 "Content-Type": "multipart/form-data",
-            }
+            };
             await axiosUser.get(`/sanctum/csrf-cookie`);
 
             const response = await axiosUser.post(`/api/documents/${id}`, formdata, {
@@ -161,63 +156,59 @@ export const useDocumentStore = defineStore('documents', () => {
 
             loading.value = false;
 
-            if (response.status == 200) return [true, response.data.title, response.data.id]
+            if (response.status == 200) return [true, response.data.title, response.data.id];
 
         } catch (error) {
-            loading.value = false
-            errors.value = axiosError(error)
+            loading.value = false;
+            errors.value = axiosError(error);
 
-            return [false, "erreur", 1]
+            return [false, "erreur", 1];
         }
 
-        return [false, "erreur", 1]
+        return [false, "erreur", 1];
     }
 
     async function getDocumentById(id: number) {
-        loading.value = true
-        errors.value = null
+        loading.value = true;
+        errors.value = null;
         try {
-
             await axiosUser.get(`/sanctum/csrf-cookie`);
             const response = await axiosUser.get(`/api/documents/${id}`);
-
-            loading.value = false
-
-            document.value = response.data
-
-            return response.data
+            document.value = response.data;
+            loading.value = false;
+            return response.data;
         } catch (error) {
-            loading.value = false
-            errors.value = axiosError(error)
+            loading.value = false;
+            errors.value = axiosError(error);
 
-            return false
+            return false;
         }
     }
 
     async function deleteDocument(id: number) {
-        loading2.value = true
-        errors.value = null
+        loading2.value = true;
+        errors.value = null;
         try {
 
             await axiosUser.get(`${import.meta.env.VITE_API_URL}/sanctum/csrf-cookie`);
             const response = await axiosUser.delete(`/api/documents/${id}`);
 
-            loading2.value = false
+            loading2.value = false;
 
             if (response.status == 204) {
-                return true
+                return true;
             }
         } catch (error) {
-            loading2.value = false
-            errors.value = axiosError(error)
+            loading2.value = false;
+            errors.value = axiosError(error);
 
-            return false
+            return false;
         }
     }
 
     async function downloadDocument(id: number): Promise<void> {
-        loading2.value = true
-        errors.value = null
+        loading2.value = true;
+        errors.value = null;
         try {
 
             await axiosUser.get(`/sanctum/csrf-cookie`);
@@ -225,99 +216,99 @@ export const useDocumentStore = defineStore('documents', () => {
                 responseType: "blob"
             });
 
-            loading2.value = false
-            const filename = `DocShare_${Date.now()}`
+            loading2.value = false;
+            const filename = `DocShare_${Date.now()}`;
 
             return downloadFile(filename, response.data, "application/pdf");
         } catch (error) {
-            loading2.value = false
-            errors.value = axiosError(error)
+            loading2.value = false;
+            errors.value = axiosError(error);
         }
     }
 
     async function shareDocument(id: number, formdata: ShareDocumentData) {
-        loading2.value = true
-        errors.value = null
+        loading2.value = true;
+        errors.value = null;
         try {
 
             await axiosUser.get(`/sanctum/csrf-cookie`);
             await axiosUser.post(`/api/documents/${id}/private-share`, formdata);
 
-            loading2.value = false
+            loading2.value = false;
 
-            return true
+            return true;
 
         } catch (error) {
-            loading2.value = false
-            errors.value = axiosError(error)
+            loading2.value = false;
+            errors.value = axiosError(error);
 
-            return false
+            return false;
         }
     }
 
     async function generateDocLink(id: number) {
-        loading2.value = true
-        errors.value = null
+        loading2.value = true;
+        errors.value = null;
         try {
 
             await axiosUser.get(`/sanctum/csrf-cookie`);
             const response = await axiosUser.post(`/api/documents/${id}/link-share`, {});
 
-            loading2.value = false
+            loading2.value = false;
 
             if (response.data) {
                 return response.data.token;
             }
 
         } catch (error) {
-            loading2.value = false
-            errors.value = axiosError(error)
+            loading2.value = false;
+            errors.value = axiosError(error);
 
-            return false
+            return false;
         }
     }
 
     async function getDocByToken(token: string) {
-        loading.value = true
-        errors.value = null
+        loading.value = true;
+        errors.value = null;
         try {
 
             await axiosUser.get(`/sanctum/csrf-cookie`);
             const response = await axiosUser.get(`/api/documents/token/${token}`);
 
-            loading.value = false
+            loading.value = false;
 
             if (response.data) {
                 document.value = response.data;
-                return response.data
+                return response.data;
             }
 
         } catch (error) {
-            loading.value = false
-            errors.value = axiosError(error)
+            loading.value = false;
+            errors.value = axiosError(error);
 
-            return false
+            return false;
         }
     }
 
     async function getDocumentsTags() {
-        loading.value = true
-        errors.value = null
+        loading.value = true;
+        errors.value = null;
         try {
 
             await axiosUser.get(`/sanctum/csrf-cookie`);
-            const response = await axiosUser.get('/api/tags');
+            const response = await axiosUser.get("/api/tags");
 
-            loading.value = false
+            loading.value = false;
 
-            tags.value = response.data
+            tags.value = response.data;
 
-            return response.data
+            return response.data;
         } catch (error) {
-            loading.value = false
-            errors.value = axiosError(error)
+            loading.value = false;
+            errors.value = axiosError(error);
 
-            return false
+            return false;
         }
     }
 
@@ -343,5 +334,5 @@ export const useDocumentStore = defineStore('documents', () => {
         updateDocument,
         getDocByToken,
         getDocumentsTags
-    }
-})
+    };
+});

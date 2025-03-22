@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
-import { useRoute, useRouter } from "vue-router";
-import { useDocumentStore } from "@/store/documents";
-import { clearFieldErrors, convertSize, formatDate } from "@/helpers";
-import { useAuthStore } from "@/store/auth";
+import {computed, onMounted, ref} from "vue";
+import {useRoute, useRouter} from "vue-router";
+import {useDocumentStore} from "@/store/documents";
+import {clearFieldErrors, convertSize, formatDate} from "@/helpers";
+import {useAuthStore} from "@/store/auth";
 import toast from "@/plugins/toast";
 
 const route = useRoute();
 const router = useRouter();
 const doc_store = useDocumentStore();
 const auth_store = useAuthStore();
-const doc_id: number = route.params.id;
+const doc_id: number = Number(route.params.id);
 const show_delete_dialog = ref(false);
 const show_share_dialog = ref(false);
 const show_link_dialog = ref(false);
@@ -22,7 +22,7 @@ const form = ref({
     email: "",
 });
 
-const { form_errors, clearFieldError } = clearFieldErrors(doc_store, form);
+const {form_errors, clearFieldError} = clearFieldErrors(doc_store, form);
 
 const email_rules = [
     (value: string) => !!value || "L'email est requis",
@@ -51,7 +51,7 @@ async function deleteDocument(id: number) {
 
     if (success) {
         toast("Document supprimé.", "success");
-        router.push("/documents/created");
+        await router.push("/documents/created");
     }
 }
 
@@ -78,6 +78,21 @@ onMounted(async () => {
 });
 
 const doc = computed(() => doc_store.document);
+const formattedDate = computed(() => formatDate(doc.value?.created_at || ""));
+const formattedSize = computed(() => convertSize(doc.value?.size || 0));
+const formattedVisibility = computed(() => ({
+    public: "Public",
+    private: "Privé",
+    account_shared: "Partagé en privé",
+    link_shared: "Partagé par lien"
+}[doc.value?.visibility ?? "private"]));
+
+const visibilityColor = computed(() => ({
+    public: "green",
+    private: "gray",
+    account_shared: "blue",
+    link_shared: "orange"
+}[doc.value?.visibility ?? "private"]));
 </script>
 
 <template>
@@ -98,6 +113,9 @@ const doc = computed(() => doc_store.document);
                     <v-card>
                         <v-card-title class="text-h4 pa-4">
                             {{ doc.title }}
+                            <v-chip :color="visibilityColor">
+                                {{ formattedVisibility }}
+                            </v-chip>
                         </v-card-title>
 
                         <v-card-text>
@@ -120,9 +138,10 @@ const doc = computed(() => doc_store.document);
                                     >
                                         <div class="text-center">
                                             <v-icon size="64" color="grey"
-                                                >mdi-file-document-outline</v-icon
+                                            >mdi-file-document-outline
+                                            </v-icon
                                             >
-                                            <br />
+                                            <br/>
                                             <v-btn
                                                 color="primary"
                                                 class="mt-4"
@@ -134,7 +153,8 @@ const doc = computed(() => doc_store.document);
                                                 "
                                             >
                                                 <v-icon start
-                                                    >mdi-download</v-icon
+                                                >mdi-download
+                                                </v-icon
                                                 >
                                                 Télécharger
                                             </v-btn>
@@ -145,82 +165,94 @@ const doc = computed(() => doc_store.document);
                                 <v-col cols="12" md="4">
                                     <v-card variant="outlined" class="mb-4">
                                         <v-card-title
-                                            >Informations</v-card-title
+                                        >Informations
+                                        </v-card-title
                                         >
                                         <v-card-text>
                                             <v-list density="compact">
                                                 <v-list-item>
                                                     <template v-slot:prepend>
                                                         <v-icon color="primary"
-                                                            >mdi-account</v-icon
+                                                        >mdi-account
+                                                        </v-icon
                                                         >
                                                     </template>
                                                     <v-list-item-title
-                                                        >Auteur</v-list-item-title
+                                                    >Auteur
+                                                    </v-list-item-title
                                                     >
                                                     <v-list-item-subtitle>{{
-                                                        doc.author
-                                                    }}</v-list-item-subtitle>
+                                                            doc.author
+                                                        }}
+                                                    </v-list-item-subtitle>
                                                 </v-list-item>
 
                                                 <v-list-item>
                                                     <template v-slot:prepend>
                                                         <v-icon color="primary"
-                                                            >mdi-calendar</v-icon
+                                                        >mdi-calendar
+                                                        </v-icon
                                                         >
                                                     </template>
                                                     <v-list-item-title
-                                                        >Date de
-                                                        téléversement</v-list-item-title
+                                                    >Date de
+                                                        téléversement
+                                                    </v-list-item-title
                                                     >
                                                     <v-list-item-subtitle>{{
-                                                        formatDate(
-                                                            doc.created_at
-                                                        )
-                                                    }}</v-list-item-subtitle>
+                                                            formattedDate
+                                                        }}
+                                                    </v-list-item-subtitle>
                                                 </v-list-item>
 
                                                 <v-list-item>
                                                     <template v-slot:prepend>
                                                         <v-icon color="primary"
-                                                            >mdi-download</v-icon
+                                                        >mdi-download
+                                                        </v-icon
                                                         >
                                                     </template>
                                                     <v-list-item-title
-                                                        >Nombre de
-                                                        téléchargements</v-list-item-title
+                                                    >Nombre de
+                                                        téléchargements
+                                                    </v-list-item-title
                                                     >
                                                     <v-list-item-subtitle>{{
-                                                        doc.downloads
-                                                    }}</v-list-item-subtitle>
+                                                            doc.downloads
+                                                        }}
+                                                    </v-list-item-subtitle>
                                                 </v-list-item>
 
                                                 <v-list-item>
                                                     <template v-slot:prepend>
                                                         <v-icon color="primary"
-                                                            >mdi-harddisk</v-icon
+                                                        >mdi-harddisk
+                                                        </v-icon
                                                         >
                                                     </template>
-                                                    <v-list-item-title
-                                                        >Taille</v-list-item-title
-                                                    >
-                                                    <v-list-item-subtitle>{{
-                                                        convertSize(doc.size)
-                                                    }}</v-list-item-subtitle>
+                                                    <v-list-item-title>
+                                                        Taille
+                                                    </v-list-item-title>
+                                                    <v-list-item-subtitle>
+                                                        {{ formattedSize }}
+                                                    </v-list-item-subtitle>
                                                 </v-list-item>
 
                                                 <v-list-item>
                                                     <template v-slot:prepend>
                                                         <v-icon color="primary"
-                                                            >mdi-counter</v-icon
+                                                        >mdi-counter
+                                                        </v-icon
                                                         >
                                                     </template>
                                                     <v-list-item-title
-                                                        >Pages</v-list-item-title
+                                                    >Pages
+                                                    </v-list-item-title
                                                     >
                                                     <v-list-item-subtitle>{{
-                                                        doc.pages
-                                                    }}</v-list-item-subtitle>
+                                                            doc.pages
+                                                        }}
+                                                    </v-list-item-subtitle>
                                                 </v-list-item>
                                             </v-list>
                                         </v-card-text>
@@ -240,7 +272,8 @@ const doc = computed(() => doc_store.document);
                                                 "
                                             >
                                                 <v-icon start
-                                                    >mdi-pencil</v-icon
+                                                >mdi-pencil
+                                                </v-icon
                                                 >
                                                 Modifier
                                             </v-btn>
@@ -256,7 +289,8 @@ const doc = computed(() => doc_store.document);
                                                 "
                                             >
                                                 <v-icon start
-                                                    >mdi-download</v-icon
+                                                >mdi-download
+                                                </v-icon
                                                 >
                                                 Télécharger
                                             </v-btn>
@@ -279,7 +313,8 @@ const doc = computed(() => doc_store.document);
                                                         v-bind="props"
                                                     >
                                                         <v-icon start
-                                                            >mdi-share-variant</v-icon
+                                                        >mdi-share-variant
+                                                        </v-icon
                                                         >
                                                         Partager
                                                     </v-btn>
@@ -291,8 +326,9 @@ const doc = computed(() => doc_store.document);
                                                         "
                                                     >
                                                         <v-list-item-title
-                                                            >A un
-                                                            compte</v-list-item-title
+                                                        >A un
+                                                            compte
+                                                        </v-list-item-title
                                                         >
                                                     </v-list-item>
                                                     <v-list-item>
@@ -307,8 +343,9 @@ const doc = computed(() => doc_store.document);
                                                             :loading="
                                                                 doc_store.loading2
                                                             "
-                                                            >Générer le
-                                                            lien</v-list-item-title
+                                                        >Générer le
+                                                            lien
+                                                        </v-list-item-title
                                                         >
                                                     </v-list-item>
                                                 </v-list>
@@ -326,7 +363,8 @@ const doc = computed(() => doc_store.document);
                                                 "
                                             >
                                                 <v-icon start
-                                                    >mdi-delete</v-icon
+                                                >mdi-delete
+                                                </v-icon
                                                 >
                                                 Supprimer
                                             </v-btn>
@@ -342,7 +380,8 @@ const doc = computed(() => doc_store.document);
             <v-dialog v-model="show_delete_dialog" max-width="500px">
                 <v-card>
                     <v-card-title
-                        >Voulez-vous supprimer ce document ?</v-card-title
+                    >Voulez-vous supprimer ce document ?
+                    </v-card-title
                     >
                     <v-card-actions>
                         <v-spacer></v-spacer>
@@ -350,13 +389,15 @@ const doc = computed(() => doc_store.document);
                             color="grey"
                             variant="text"
                             @click="show_delete_dialog = false"
-                            >Annuler</v-btn
+                        >Annuler
+                        </v-btn
                         >
                         <v-btn
                             color="danger"
                             :loading="doc_store.loading2"
                             @click="deleteDocument(doc.id)"
-                            >Supprimer</v-btn
+                        >Supprimer
+                        </v-btn
                         >
                     </v-card-actions>
                 </v-card>
@@ -385,7 +426,8 @@ const doc = computed(() => doc_store.document);
                     <v-card-actions>
                         <v-spacer></v-spacer>
                         <v-btn color="primary" @click="show_link_dialog = false"
-                            >Fermer</v-btn
+                        >Fermer
+                        </v-btn
                         >
                     </v-card-actions>
                 </v-card>
@@ -398,7 +440,8 @@ const doc = computed(() => doc_store.document);
                         @submit.prevent="shareDocument(doc.id)"
                     >
                         <v-card-title
-                            >Partager le document avec un compte</v-card-title
+                        >Partager le document avec un compte
+                        </v-card-title
                         >
                         <v-card-text>
                             <v-text-field
@@ -423,13 +466,15 @@ const doc = computed(() => doc_store.document);
                                 color="grey"
                                 variant="text"
                                 @click="show_share_dialog = false"
-                                >Annuler</v-btn
+                            >Annuler
+                            </v-btn
                             >
                             <v-btn
                                 color="primary"
                                 :loading="doc_store.loading2"
                                 @click="shareDocument(doc.id)"
-                                >Partager</v-btn
+                            >Partager
+                            </v-btn
                             >
                         </v-card-actions>
                     </v-form>
