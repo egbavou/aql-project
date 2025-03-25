@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { useAuthStore } from "@/store/auth";
-import { useRouter } from "vue-router";
+import {ref} from "vue";
+import {useAuthStore} from "@/store/auth";
+import {useRouter} from "vue-router";
 import toast from "@/plugins/toast";
 
 const router = useRouter();
@@ -45,24 +45,17 @@ async function logout() {
                     </v-btn>
                     <v-menu>
                         <template v-slot:activator="{ props }">
-                            <v-btn variant="text" v-bind="props"
-                                ><v-icon start
-                                    >mdi-file-document-multiple</v-icon
-                                >
+                            <v-btn variant="text" v-bind="props">
+                                <v-icon start>mdi-file-document-multiple</v-icon>
                                 Mes documents
                             </v-btn>
                         </template>
                         <v-list>
                             <v-list-item to="/documents/created">
-                                <v-list-item-title
-                                    >Documents publiés</v-list-item-title
-                                >
+                                <v-list-item-title>Documents publiés</v-list-item-title>
                             </v-list-item>
                             <v-list-item to="/documents/shared">
-                                <v-list-item-title
-                                    >Documents partagés avec
-                                    moi</v-list-item-title
-                                >
+                                <v-list-item-title>Documents partagés avec moi</v-list-item-title>
                             </v-list-item>
                         </v-list>
                     </v-menu>
@@ -169,15 +162,17 @@ async function logout() {
         </v-navigation-drawer>
 
         <v-main>
-            <router-view />
+            <router-view/>
         </v-main>
 
         <v-footer app class="bg-grey-lighten-3">
             <v-row justify="center" no-gutters>
-                <v-col class="text-center" cols="12">
-                    <span
-                        >&copy; {{ new Date().getFullYear() }} - DocShare</span
-                    >
+                <v-col class="text-center" cols="6">
+                    <span>&copy; {{ new Date().getFullYear() }} - DocShare</span>
+                </v-col>
+
+                <v-col class="text-center" cols="6">
+                    <a href="https://aql-user-documentation.vercel.app" target="_blank">Documentation utilisateur</a>
                 </v-col>
             </v-row>
         </v-footer>

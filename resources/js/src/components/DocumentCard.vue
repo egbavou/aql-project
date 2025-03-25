@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineProps, ref } from "vue";
+import { ref } from "vue";
 import { clearFieldErrors, convertSize, formatDate } from "@/helpers";
 import { useAuthStore } from "@/store/auth";
 import { useDocumentStore } from "@/store/documents";
