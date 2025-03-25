@@ -54,9 +54,11 @@ final class DocumentsService
      */
     public function listSharedWith(DocumentFilterRequest $request): LengthAwarePaginator
     {
-        $query = Document::with('tags')
+        $query = Document::select('documents.*')
             ->join('accesses', 'documents.id', '=', 'accesses.document_id')
-            ->where('accesses.user_id', $request->user()->id);
+            ->where('accesses.user_id', $request->user()->id)
+            ->with('tags');
+
         return $this->finalizeDocumentFiltering($query, $request);
     }
 
