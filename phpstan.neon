@@ -1,0 +1,17 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+    - vendor/nesbot/carbon/extension.neon
+
+parameters:
+    paths:
+        - app/
+
+    level: 7
+
+    ignoreErrors:
+        - '#PHPDoc tag @mixin contains unknown class App\\Models\\IdeHelper.*#'
+
+
+    excludePaths:
+            - _ide_helper.php
+            - _ide_helper_models.php

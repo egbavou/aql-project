@@ -1,0 +1,67 @@
+services:
+    aql-app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        image: aql-app:latest
+        volumes:
+            - .:/project
+        restart: unless-stopped
+        command: "/bin/true"
+
+    app:
+        image: aql-app:latest
+        ports:
+            - "8000:8000"
+            - "5173:5173"
+        networks:
+            - aql-network
+        environment:
+            - DB_HOST=db
+        depends_on:
+            - db
+        command: >
+            sh -c "wait-for-it.sh db:3306 -- php artisan migrate && php artisan serve --host=0.0.0.0 --port=8000 & npm run dev"
+        restart: unless-stopped
+
+    db:
+        image: mysql:8.0
+        networks:
+            - aql-network
+        environment:
+            MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+            MYSQL_USER: ${DB_USERNAME}
+            MYSQL_DATABASE: ${DB_DATABASE}
+            MYSQL_PASSWORD: ${DB_PASSWORD}
+        volumes:
+            - db_data:/var/lib/mysql
+        restart: unless-stopped
+
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        ports:
+            - "12234:80"
+        networks:
+            - aql-network
+        environment:
+            PMA_HOST: db
+            MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+        depends_on:
+            - db
+        restart: unless-stopped
+
+    maildev:
+        image: maildev/maildev
+        container_name: maildev
+        ports:
+            - "1025:1025"
+            - "1080:1080"
+        networks:
+            - aql-network
+        restart: unless-stopped
+
+networks:
+    aql-network:
+
+volumes:
+    db_data:
