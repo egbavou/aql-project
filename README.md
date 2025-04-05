@@ -17,6 +17,7 @@ docker compose up -d
 # Backend running on the port 8000
 # phpmyadmin, running on the port 12234
 # maildev running on the port 1080
+# Other params can be changed in the .env
 ```
 
 ## API Setup (without docker)
